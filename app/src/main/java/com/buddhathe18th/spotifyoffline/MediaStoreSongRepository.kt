@@ -24,11 +24,11 @@ object MediaStoreSongRepository {
         )
 
         // Only music files, and only those whose path contains "/Music/SpotifyOffline/"
-        val selection = buildString {
-            append("${MediaStore.Audio.Media.IS_MUSIC} != 0")
-            append(" AND ${MediaStore.Audio.Media.DATA} LIKE ?")
-        }
+        val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND " +
+        "${MediaStore.Audio.Media.DATA} LIKE ?"
         val selectionArgs = arrayOf("%/Music/SpotifyOffline/%")
+
+
 
         val songs = mutableListOf<Song>()
 
