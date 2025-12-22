@@ -6,51 +6,48 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import com.buddhathe18th.spotifyoffline.ui.theme.SpotifyOfflineTheme
+import com.buddhathe18th.spotifyoffline.R
+import android.net.Uri
+
+
 
 class MainActivity : ComponentActivity() {
 
     // Pick correct permission for the SDK version
     private val audioPermission: String
-        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_AUDIO       // Android 13+
-        } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE  // Older devices
-        }
+        get() =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    Manifest.permission.READ_MEDIA_AUDIO // Android 13+
+                } else {
+                    Manifest.permission.READ_EXTERNAL_STORAGE // Older devices
+                }
 
     private var pendingOnGranted: (() -> Unit)? = null
 
     // Launcher that shows the permission dialog and gets the result
     private val audioPermissionLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { isGranted ->
-            if (isGranted) {
-                Log.d("MainActivity", "Permission granted")
-                pendingOnGranted?.invoke()
-            } else {
-                Log.d("MainActivity", "Permission denied")
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+                if (isGranted) {
+                    Log.d("MainActivity", "Permission granted")
+                    pendingOnGranted?.invoke()
+                } else {
+                    Log.d("MainActivity", "Permission denied")
+                }
+                pendingOnGranted = null
             }
-            pendingOnGranted = null
-        }
 
     // Helper that ensures permission, then runs the callback
     fun ensureAudioPermission(onGranted: () -> Unit) {
-        val granted = ContextCompat.checkSelfPermission(
-            this,
-            audioPermission
-        ) == PackageManager.PERMISSION_GRANTED
+        val granted =
+                ContextCompat.checkSelfPermission(this, audioPermission) ==
+                        PackageManager.PERMISSION_GRANTED
 
         if (granted) {
             onGranted()
@@ -65,36 +62,45 @@ class MainActivity : ComponentActivity() {
 
         // Ask for audio/storage permission when the app launches
         ensureAudioPermission {
+
+            // Simple test of the Song model
+            val dummy =
+                    Song(
+                            title = "Test Song",
+                            artist = "Test Artist",
+                            uri = Uri.parse("content://test"),
+                            durationMs = 1000L
+                    )
             Log.d("MainActivity", "Permission granted")
-            // Place any audio/file initialization here later
+            // Test loading songs after permission is granted
+            val songs = MediaStoreSongRepository.loadSongs(this)
+            Log.d("MainActivity", "Loaded ${songs.size} songs")
+            songs.forEach { song -> Log.d("MainActivity", "Song: ${song.title} - ${song.artist}") }
         }
 
-        enableEdgeToEdge()
-        setContent {
-            SpotifyOfflineTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
-        }
+        setContentView(R.layout.activity_main)
+
+        // enableEdgeToEdge()
+        // setContent {
+        //     SpotifyOfflineTheme {
+        //         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+        //             Greeting(
+        //                 name = "Android",
+        //                 modifier = Modifier.padding(innerPadding)
+        //             )
+        //         }
+        //     }
+        // }
     }
 }
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+    Text(text = "Hello $name!", modifier = modifier)
 }
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    SpotifyOfflineTheme {
-        Greeting("Android")
-    }
+    SpotifyOfflineTheme { Greeting("Android") }
 }
