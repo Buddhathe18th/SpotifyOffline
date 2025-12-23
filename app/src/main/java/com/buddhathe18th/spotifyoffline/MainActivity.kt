@@ -2,18 +2,15 @@ package com.buddhathe18th.spotifyoffline
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
-import android.widget.Button
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 class MainActivity : ComponentActivity() {
 
@@ -57,50 +54,41 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Ask for audio/storage permission when the app launches
-        ensureAudioPermission {
+        // Inflate the layout FIRST
+        setContentView(R.layout.activity_main)
 
-            // Simple test of the Song model
-            val dummy =
-                    Song(
-                            title = "Test Song",
-                            artist = "Test Artist",
-                            uri = Uri.parse("content://test"),
-                            durationMs = 1000L
-                    )
+        // Now permission callback can safely access views
+        ensureAudioPermission {
             Log.d("MainActivity", "Permission granted")
-            // Test loading songs after permission is granted
+
             val songs = MediaStoreSongRepository.loadSongs(this)
             Log.d("MainActivity", "Loaded ${songs.size} songs")
-            songs.forEach { song -> Log.d("MainActivity", "Song: ${song.title} - ${song.artist}") }
-        }
 
-        setContentView(R.layout.activity_main)
+            // Now the RecyclerView exists, so this works
+            setupRecyclerView(songs)
+        }
 
         val scanButton = findViewById<Button>(R.id.buttonScan)
         scanButton.setOnClickListener {
             Log.d("MainActivity", "Scan button clicked")
 
             MediaStoreSongRepository.scanSpotifyOfflineFolder(this) {
-                // Rescan complete, reload songs
-                val songs = MediaStoreSongRepository.loadSongs(this)
-                Log.d("MainActivity", "Reloaded ${songs.size} songs after scan")
-                songs.forEach { song ->
-                    Log.d("MainActivity", "Song: ${song.title} - ${song.artist}")
+                runOnUiThread {
+                    val songs = MediaStoreSongRepository.loadSongs(this)
+                    Log.d("MainActivity", "Reloaded ${songs.size} songs after scan")
+
+                    setupRecyclerView(songs)
                 }
             }
         }
+    }
 
-        // enableEdgeToEdge()
-        // setContent {
-        //     SpotifyOfflineTheme {
-        //         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        //             Greeting(
-        //                 name = "Android",
-        //                 modifier = Modifier.padding(innerPadding)
-        //             )
-        //         }
-        //     }
-        // }
+    private fun setupRecyclerView(songs: List<Song>) {
+        val recyclerView = findViewById<RecyclerView>(R.id.recyclerSongs)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+        val adapter = SongAdapter(songs) { song -> Log.d("MainActivity", "Clicked: ${song.title}") }
+
+        recyclerView.adapter = adapter
     }
 }
