@@ -5,6 +5,10 @@ import android.content.Context
 import android.net.Uri
 import android.provider.BaseColumns
 import android.provider.MediaStore
+import android.media.MediaScannerConnection
+import android.os.Environment
+import java.io.File
+import android.util.Log
 
 object MediaStoreSongRepository {
 
@@ -66,5 +70,44 @@ object MediaStoreSongRepository {
         }
 
         return songs
+    }
+
+    fun scanSpotifyOfflineFolder(context: Context, onComplete: () -> Unit) {
+        // Path to the folder
+        val musicDir = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC),
+            "SpotifyOffline"
+        )
+
+        if (!musicDir.exists()) {
+            Log.d("MediaStoreSongRepository", "SpotifyOffline folder does not exist")
+            onComplete()
+            return
+        }
+
+        // Get all audio files in that folder
+        val audioFiles = musicDir.listFiles { file ->
+            file.isFile && file.extension in listOf("mp3", "m4a", "flac", "wav", "ogg")
+        }
+
+        if (audioFiles.isNullOrEmpty()) {
+            Log.d("MediaStoreSongRepository", "No audio files found to scan")
+            onComplete()
+            return
+        }
+
+        val paths = audioFiles.map { it.absolutePath }.toTypedArray()
+
+        Log.d("MediaStoreSongRepository", "Scanning ${paths.size} files...")
+
+        MediaScannerConnection.scanFile(
+            context,
+            paths,
+            null
+        ) { _, _ ->
+            // Called once per file; when all are done, callback is complete
+            Log.d("MediaStoreSongRepository", "Scan complete")
+            onComplete()
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.buddhathe18th.spotifyoffline
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -12,11 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
-import com.buddhathe18th.spotifyoffline.ui.theme.SpotifyOfflineTheme
-import com.buddhathe18th.spotifyoffline.R
-import android.net.Uri
-
-
+import android.widget.Button
 
 class MainActivity : ComponentActivity() {
 
@@ -80,6 +77,20 @@ class MainActivity : ComponentActivity() {
 
         setContentView(R.layout.activity_main)
 
+        val scanButton = findViewById<Button>(R.id.buttonScan)
+        scanButton.setOnClickListener {
+            Log.d("MainActivity", "Scan button clicked")
+
+            MediaStoreSongRepository.scanSpotifyOfflineFolder(this) {
+                // Rescan complete, reload songs
+                val songs = MediaStoreSongRepository.loadSongs(this)
+                Log.d("MainActivity", "Reloaded ${songs.size} songs after scan")
+                songs.forEach { song ->
+                    Log.d("MainActivity", "Song: ${song.title} - ${song.artist}")
+                }
+            }
+        }
+
         // enableEdgeToEdge()
         // setContent {
         //     SpotifyOfflineTheme {
@@ -92,15 +103,4 @@ class MainActivity : ComponentActivity() {
         //     }
         // }
     }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(text = "Hello $name!", modifier = modifier)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    SpotifyOfflineTheme { Greeting("Android") }
 }
