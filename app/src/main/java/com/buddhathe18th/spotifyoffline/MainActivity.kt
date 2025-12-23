@@ -9,10 +9,58 @@ import android.widget.Button
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Inflate the layout FIRST
+        setContentView(R.layout.activity_main)
+
+        val recyclerView = findViewById<RecyclerView>(R.id.recyclerSongs)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        var adapter =
+                SongAdapter(emptyList()) { song -> Log.d("MainActivity", "Clicked: ${song.title}") }
+        recyclerView.adapter = adapter
+
+        // Now permission callback can safely access views
+        ensureAudioPermission {
+            Log.d("MainActivity", "Permission granted")
+            lifecycleScope.launch {
+                val songs =
+                        withContext(Dispatchers.IO) {
+                            MediaStoreSongRepository.loadSongs(this@MainActivity)
+                        }
+                Log.d("MainActivity", "Loaded ${songs.size} songs")
+                setupRecyclerView(songs)
+            }
+            // Now the RecyclerView exists, so this works
+
+        }
+
+        val scanButton = findViewById<Button>(R.id.buttonScan)
+        scanButton.setOnClickListener {
+            Log.d("MainActivity", "Scan button clicked")
+
+            MediaStoreSongRepository.scanSpotifyOfflineFolder(this) {
+                lifecycleScope.launch {
+                    val songs =
+                            withContext(Dispatchers.IO) {
+                                MediaStoreSongRepository.loadSongs(this@MainActivity)
+                            }
+                    Log.d("MainActivity", "Reloaded ${songs.size} songs after scan")
+                    setupRecyclerView(songs)
+                }
+            }
+        }
+    }
 
     // Pick correct permission for the SDK version
     private val audioPermission: String
@@ -48,38 +96,6 @@ class MainActivity : ComponentActivity() {
         } else {
             pendingOnGranted = onGranted
             audioPermissionLauncher.launch(audioPermission)
-        }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        // Inflate the layout FIRST
-        setContentView(R.layout.activity_main)
-
-        // Now permission callback can safely access views
-        ensureAudioPermission {
-            Log.d("MainActivity", "Permission granted")
-
-            val songs = MediaStoreSongRepository.loadSongs(this)
-            Log.d("MainActivity", "Loaded ${songs.size} songs")
-
-            // Now the RecyclerView exists, so this works
-            setupRecyclerView(songs)
-        }
-
-        val scanButton = findViewById<Button>(R.id.buttonScan)
-        scanButton.setOnClickListener {
-            Log.d("MainActivity", "Scan button clicked")
-
-            MediaStoreSongRepository.scanSpotifyOfflineFolder(this) {
-                runOnUiThread {
-                    val songs = MediaStoreSongRepository.loadSongs(this)
-                    Log.d("MainActivity", "Reloaded ${songs.size} songs after scan")
-
-                    setupRecyclerView(songs)
-                }
-            }
         }
     }
 
