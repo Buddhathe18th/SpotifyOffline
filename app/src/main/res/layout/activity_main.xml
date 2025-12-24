@@ -40,7 +40,9 @@
             android:max="100"
             android:progress="0"
             android:paddingTop="0dp"
-            android:paddingBottom="4dp" />
+            android:paddingBottom="4dp"
+            android:clickable="false"
+            android:focusable="false" />
 
         <!-- Time labels (current / total) -->
         <LinearLayout
