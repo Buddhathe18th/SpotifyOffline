@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
                 SongAdapter(emptyList()) { song -> Log.d("MainActivity", "Clicked: ${song.title}") }
         val scanButton = findViewById<Button>(R.id.buttonScan)
 
-        buttonPlayPause.isEnabled = true
+        buttonPlayPause.isEnabled = false
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
