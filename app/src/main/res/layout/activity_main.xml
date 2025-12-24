@@ -47,7 +47,8 @@
             android:id="@+id/buttonScan"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Scan" />
+            android:text="Scan"
+            android:soundEffectsEnabled="false" />
 
         <ImageButton
             android:id="@+id/buttonPlayPause"
@@ -57,16 +58,8 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_media_play"
             android:contentDescription="Play/Pause"
-            android:enabled="false" />
-
-        <ImageButton
-            android:id="@+id/buttonStop"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:padding="4dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_media_pause"
-            android:contentDescription="Stop" />
+            android:enabled="false"
+            android:soundEffectsEnabled="false" />
     </LinearLayout>
 
 

@@ -29,14 +29,12 @@ class MainActivity : ComponentActivity() {
         setContentView(R.layout.activity_main)
 
         val buttonPlayPause = findViewById<ImageButton>(R.id.buttonPlayPause)
-        val buttonStop = findViewById<ImageButton>(R.id.buttonStop)
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerSongs)
         var adapter =
                 SongAdapter(emptyList()) { song -> Log.d("MainActivity", "Clicked: ${song.title}") }
         val scanButton = findViewById<Button>(R.id.buttonScan)
 
         buttonPlayPause.isEnabled = true
-        buttonStop.isEnabled = true
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
@@ -53,11 +51,6 @@ class MainActivity : ComponentActivity() {
 
                 Log.d("MainActivity", "Resumed playback")
             }
-        }
-
-        buttonStop.setOnClickListener {
-            musicPlayer.stopAndRelease()
-            Log.d("MainActivity", "Stopped and released player")
         }
 
         scanButton.setOnClickListener {
