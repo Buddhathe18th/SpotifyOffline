@@ -165,4 +165,11 @@ class MainActivity : ComponentActivity() {
         recyclerView.adapter = adapter
         Log.d("MainActivity", "Adapter set! Item count: ${adapter.itemCount}")
     }
+
+    // If needed, convert this into a foreground service for more reliable playback
+    override fun onDestroy() {
+        super.onDestroy()
+        musicPlayer.stopAndRelease()
+        Log.d("MainActivity", "Activity destroyed, released player")
+    }
 }
