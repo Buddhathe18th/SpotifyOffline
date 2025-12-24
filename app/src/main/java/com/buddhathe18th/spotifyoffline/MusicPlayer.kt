@@ -60,6 +60,16 @@ class MusicPlayer {
         mp.prepareAsync()
     }
 
+    fun getCurrentPosition(): Int {
+        val mp = mediaPlayer
+        return if (mp != null && isPrepared) mp.currentPosition else 0
+    }
+
+    fun getDuration(): Int {
+        val mp = mediaPlayer
+        return if (mp != null && isPrepared) mp.duration else 0
+    }
+
     fun pause() {
         val mp = mediaPlayer
         if (mp != null && isPrepared && mp.isPlaying) {

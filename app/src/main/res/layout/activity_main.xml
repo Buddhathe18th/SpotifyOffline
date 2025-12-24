@@ -25,41 +25,82 @@
         android:id="@+id/bottomBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:padding="12dp"
-        android:gravity="center_vertical"
+        android:background="?android:attr/windowBackground"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <TextView
-            android:id="@+id/textNowPlaying"
-            android:layout_width="0dp"
+        <!-- Progress bar (full width, at top) -->
+        <SeekBar
+            android:id="@+id/seekBarProgress"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Nothing playing"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textAppearance="@android:style/TextAppearance.Medium" />
+            android:max="100"
+            android:progress="0"
+            android:paddingTop="0dp"
+            android:paddingBottom="4dp" />
 
-        <Button
-            android:id="@+id/buttonScan"
-            android:layout_width="wrap_content"
+        <!-- Time labels (current / total) -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Scan"
-            android:soundEffectsEnabled="false" />
+            android:orientation="horizontal"
+            android:paddingBottom="8dp">
 
-        <ImageButton
-            android:id="@+id/buttonPlayPause"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:padding="4dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_media_play"
-            android:contentDescription="Play/Pause"
-            android:enabled="false"
-            android:soundEffectsEnabled="false" />
+            <TextView
+                android:id="@+id/textCurrentTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="0:00"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary" />
+
+            <TextView
+                android:id="@+id/textTotalTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0:00"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary" />
+        </LinearLayout>
+
+        <!-- Song title and play/pause button (horizontal row at bottom) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/textNowPlaying"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Nothing playing"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="@android:style/TextAppearance.Medium" />
+
+            <Button
+                android:id="@+id/buttonScan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Scan"
+                android:soundEffectsEnabled="false" />
+            <ImageButton
+                android:id="@+id/buttonPlayPause"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="4dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_media_play"
+                android:contentDescription="Play/Pause"
+                android:enabled="false" />
+        </LinearLayout>
+
     </LinearLayout>
 
 

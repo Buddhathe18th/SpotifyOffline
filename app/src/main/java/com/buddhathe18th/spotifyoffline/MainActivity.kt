@@ -4,9 +4,12 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,6 +24,8 @@ import kotlinx.coroutines.withContext
 class MainActivity : ComponentActivity() {
 
     private val musicPlayer = MusicPlayer()
+    private val handler = Handler(Looper.getMainLooper())
+    private var isUpdatingProgress = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,12 +48,13 @@ class MainActivity : ComponentActivity() {
             if (musicPlayer.isPlaying()) {
                 musicPlayer.pause()
                 buttonPlayPause.setImageResource(android.R.drawable.ic_media_play)
+                stopProgressUpdates()
 
                 Log.d("MainActivity", "Paused playback")
             } else {
                 musicPlayer.resume()
                 buttonPlayPause.setImageResource(android.R.drawable.ic_media_pause)
-
+                startProgressUpdates()
                 Log.d("MainActivity", "Resumed playback")
             }
         }
@@ -148,6 +154,7 @@ class MainActivity : ComponentActivity() {
                                             android.R.drawable.ic_media_pause
                                     )
                                     buttonPlayPause.isEnabled = true
+                                    startProgressUpdates() // Start updating progress
                                 }
                             },
                             onCompletion = {
@@ -157,6 +164,7 @@ class MainActivity : ComponentActivity() {
                                     buttonPlayPause.setImageResource(
                                             android.R.drawable.ic_media_play
                                     )
+                                    stopProgressUpdates() // Stop updating progress
                                 }
                             }
                     )
@@ -170,6 +178,49 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         musicPlayer.stopAndRelease()
+        stopProgressUpdates()
         Log.d("MainActivity", "Activity destroyed, released player")
+    }
+
+    private val updateProgressRunnable =
+            object : Runnable {
+                override fun run() {
+                    if (musicPlayer.isPlaying()) {
+                        val currentPos = musicPlayer.getCurrentPosition()
+                        val duration = musicPlayer.getDuration()
+
+                        if (duration > 0) {
+                            val seekBar = findViewById<SeekBar>(R.id.seekBarProgress)
+                            val textCurrent = findViewById<TextView>(R.id.textCurrentTime)
+                            val textTotal = findViewById<TextView>(R.id.textTotalTime)
+
+                            seekBar.max = duration
+                            seekBar.progress = currentPos
+
+                            textCurrent.text = formatTime(currentPos)
+                            textTotal.text = formatTime(duration)
+                        }
+                    }
+
+                    if (isUpdatingProgress) {
+                        handler.postDelayed(this, 1000) // Update every second
+                    }
+                }
+            }
+
+    private fun formatTime(millis: Int): String {
+        val seconds = (millis / 1000) % 60
+        val minutes = (millis / 1000) / 60
+        return String.format("%d:%02d", minutes, seconds)
+    }
+
+    private fun startProgressUpdates() {
+        isUpdatingProgress = true
+        handler.post(updateProgressRunnable)
+    }
+
+    private fun stopProgressUpdates() {
+        isUpdatingProgress = false
+        handler.removeCallbacks(updateProgressRunnable)
     }
 }
