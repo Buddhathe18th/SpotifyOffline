@@ -55,6 +55,14 @@
             android:src="@android:drawable/ic_media_play"
             android:contentDescription="Play/Pause"
             android:enabled="false" />
+        <ImageButton
+            android:id="@+id/buttonStop"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="4dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_media_pause"
+            android:contentDescription="Stop" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

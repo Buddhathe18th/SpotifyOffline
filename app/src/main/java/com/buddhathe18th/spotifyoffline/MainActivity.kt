@@ -15,20 +15,14 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import android.widget.ImageButton
 
 class MainActivity : ComponentActivity() {
 
+    private val musicPlayer = MusicPlayer()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Inflate the layout FIRST
-        setContentView(R.layout.activity_main)
-
-        val recyclerView = findViewById<RecyclerView>(R.id.recyclerSongs)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        var adapter =
-                SongAdapter(emptyList()) { song -> Log.d("MainActivity", "Clicked: ${song.title}") }
-        recyclerView.adapter = adapter
 
         // Now permission callback can safely access views
         ensureAudioPermission {
@@ -44,6 +38,38 @@ class MainActivity : ComponentActivity() {
             // Now the RecyclerView exists, so this works
 
         }
+
+        // Inflate the layout FIRST
+        setContentView(R.layout.activity_main)
+
+        val buttonPlayPause = findViewById<ImageButton>(R.id.buttonPlayPause)
+        val buttonStop = findViewById<ImageButton>(R.id.buttonStop)
+
+        buttonPlayPause.isEnabled = true
+        buttonStop.isEnabled = true
+
+        buttonPlayPause.setOnClickListener {
+            if (musicPlayer.isPlaying()) {
+                musicPlayer.pause()
+                Log.d("MainActivity", "Paused playback")
+            } else {
+                musicPlayer.resume()
+                Log.d("MainActivity", "Resumed playback")
+            }
+        }
+
+        buttonStop.setOnClickListener {
+            musicPlayer.stopAndRelease()
+            Log.d("MainActivity", "Stopped and released player")
+        }
+
+        val recyclerView = findViewById<RecyclerView>(R.id.recyclerSongs)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        var adapter =
+                SongAdapter(emptyList()) { song -> Log.d("MainActivity", "Clicked: ${song.title}") }
+        recyclerView.adapter = adapter
+
+        
 
         val scanButton = findViewById<Button>(R.id.buttonScan)
         scanButton.setOnClickListener {
@@ -103,7 +129,21 @@ class MainActivity : ComponentActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerSongs)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        val adapter = SongAdapter(songs) { song -> Log.d("MainActivity", "Clicked: ${song.title}") }
+        val adapter =
+                SongAdapter(songs) { song ->
+                    Log.d("MainActivity", "Clicked: ${song.title}")
+                    musicPlayer.play(
+                            context = this,
+                            uri = song.uri,
+                            onPrepared = {
+                                Log.d("MainActivity", "Playback started for ${song.title}")
+                                // You could also update UI here, e.g. textNowPlaying
+                            },
+                            onCompletion = {
+                                Log.d("MainActivity", "Playback completed for ${song.title}")
+                            }
+                    )
+                }
 
         recyclerView.adapter = adapter
     }
