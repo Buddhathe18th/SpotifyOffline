@@ -14,7 +14,9 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SpotifyOffline">
+        android:theme="@style/Theme.AppCompat.Light">
+        <!-- Change theme back to Theme.SpotifyOffline -->
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
