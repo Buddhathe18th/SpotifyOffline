@@ -190,7 +190,21 @@ class MainActivity : ComponentActivity() {
                     // Find the index of the clicked song and set the queue to start there
                     val clickedIndex = songs.indexOf(song)
                     if (clickedIndex >= 0) {
-                        playQueue.addToQueue(song)
+                        val currentQueue = playQueue.getQueue()
+                        if (song == playQueue.getCurrentSong()) {
+                            Log.d("MainActivity", "Song: ${song.title} is already playing")
+                            musicPlayer.restartCurrentSong()
+                        } else if (currentQueue.contains(song)) {
+                            Log.d("MainActivity", "Song: ${song.title} is already in queue")
+                            val indexInQueue = currentQueue.indexOf(song)
+                            playQueue.setCurrentIndex(indexInQueue)
+                        } else {
+                            Log.d("MainActivity", "Song: ${song.title} is a new song in queue")
+
+                            playQueue.addToQueue(0, song)
+                            Log.d("MainActivity", "${playQueue.getQueue()}")
+                            playQueue.setQueue(playQueue.getQueue(), 0)
+                        }
                         playSongAtCurrentIndex()
                         Log.d("MainActivity", "Queue: ${playQueue.getQueue()}")
                     }
@@ -274,11 +288,7 @@ class MainActivity : ComponentActivity() {
                     runOnUiThread {
                         if (playQueue.hasNext()) {
                             playNextSong()
-                            playQueue.remove(
-                                    playQueue.getCurrentIndex() - 1
-                            ) // Remove the finished song
                         } else {
-                            playQueue.remove(playQueue.getCurrentIndex())
                             textNowPlaying.text = "Nothing playing"
                             buttonPlayPause.setImageResource(android.R.drawable.ic_media_play)
                             buttonPlayPause.isEnabled = false

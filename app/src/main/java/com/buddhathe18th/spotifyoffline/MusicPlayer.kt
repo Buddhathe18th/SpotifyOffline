@@ -77,6 +77,14 @@ class MusicPlayer {
         }
     }
 
+    fun restartCurrentSong(){
+        val mp = mediaPlayer
+        if (mp != null && isPrepared) {
+            mp.seekTo(0)
+            mp.start()
+        }
+    }
+
     fun resume() {
         val mp = mediaPlayer
         if (mp != null && isPrepared && !mp.isPlaying) {
