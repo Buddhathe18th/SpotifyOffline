@@ -3,13 +3,13 @@ package com.buddhathe18th.spotifyoffline.queue
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import androidx.activity.ComponentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.buddhathe18th.spotifyoffline.common.player.QueueManager
 import com.buddhathe18th.spotifyoffline.R
-
+import com.buddhathe18th.spotifyoffline.common.player.QueueManager
 
 class QueueActivity : ComponentActivity() {
 
@@ -30,7 +30,10 @@ class QueueActivity : ComponentActivity() {
                         songs = playQueue.getQueue().toMutableList(),
                         currentIndex = playQueue.getCurrentIndex(),
                         onTap = { index ->
-                            // Send selected index back to MainActivity
+                            Log.d(
+                                    "QueueActivity",
+                                    "Jumping to index: ${index} song ${playQueue.getQueue()[index].title}"
+                            )
                             setResult(
                                     Activity.RESULT_OK,
                                     Intent().putExtra(EXTRA_JUMP_INDEX, index)
@@ -39,7 +42,7 @@ class QueueActivity : ComponentActivity() {
                         },
                         onRemove = { index ->
                             playQueue.remove(index)
-                            //TODO: if removed current song, stop playback
+                            // TODO: if removed current song, stop playback
                             // refresh adapter from queue after removal
                             adapter.setData(playQueue.getQueue(), playQueue.getCurrentIndex())
                         }
