@@ -92,6 +92,12 @@
                 android:layout_height="wrap_content"
                 android:text="Scan"
                 android:soundEffectsEnabled="false" />
+
+            <Button
+                android:id="@+id/buttonViewQueue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="View Queue" />
         </LinearLayout>
 
         <!-- Playback controls -->

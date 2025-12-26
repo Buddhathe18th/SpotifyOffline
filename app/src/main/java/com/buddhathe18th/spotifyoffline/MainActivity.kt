@@ -1,6 +1,8 @@
 package com.buddhathe18th.spotifyoffline
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -24,10 +26,24 @@ import kotlinx.coroutines.withContext
 class MainActivity : ComponentActivity() {
 
     private val musicPlayer = MusicPlayer()
-    private val playQueue = PlayQueue() // Add PlayQueue instance
+    private val playQueue = QueueManager.playQueue
 
     private val handler = Handler(Looper.getMainLooper())
     private var isUpdatingProgress = false
+
+    private val queueLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val jumpIndex =
+                            result.data?.getIntExtra(QueueActivity.EXTRA_JUMP_INDEX, -1) ?: -1
+                    if (jumpIndex >= 0) {
+                        // Re-set the queue starting at jumpIndex (simple approach)
+                        val songs = playQueue.getQueue()
+                        playQueue.setQueue(songs, jumpIndex)
+                        playSongAtCurrentIndex()
+                    }
+                }
+            }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +60,7 @@ class MainActivity : ComponentActivity() {
         var adapter =
                 SongAdapter(emptyList()) { song -> Log.d("MainActivity", "Clicked: ${song.title}") }
         val scanButton = findViewById<Button>(R.id.buttonScan)
+        val buttonViewQueue = findViewById<Button>(R.id.buttonViewQueue)
 
         buttonPlayPause.isEnabled = false
         buttonNext.isEnabled = false
@@ -100,6 +117,10 @@ class MainActivity : ComponentActivity() {
                     setupRecyclerView(songs)
                 }
             }
+        }
+
+        buttonViewQueue.setOnClickListener {
+            startActivity(Intent(this, QueueActivity::class.java))
         }
 
         // Now permission callback can safely access views
