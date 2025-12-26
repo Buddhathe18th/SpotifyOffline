@@ -1,7 +1,5 @@
 package com.buddhathe18th.spotifyoffline
 
-import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.activity.ComponentActivity
@@ -11,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 class QueueActivity : ComponentActivity() {
 
     private val playQueue = QueueManager.playQueue
-    private lateinit var adapter: QueueAdapter
+    // private lateinit var adapter: QueueAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,33 +17,35 @@ class QueueActivity : ComponentActivity() {
 
         val recycler = findViewById<RecyclerView>(R.id.recyclerQueue)
         recycler.layoutManager = LinearLayoutManager(this)
+        val backButton = findViewById<Button>(R.id.buttonBackToMain)
+        backButton.setOnClickListener { finish() }
 
-        adapter = QueueAdapter(
-            songs = playQueue.getQueue().toMutableList(),
-            currentIndex = playQueue.getCurrentIndex(),
-            onTap = { index ->
-                // Send selected index back to MainActivity
-                setResult(
-                    Activity.RESULT_OK,
-                    Intent().putExtra(EXTRA_JUMP_INDEX, index)
-                )
-                finish()
-            },
-            onRemove = { index ->
-                playQueue.remove(index)
-                // refresh adapter from queue after removal
-                adapter.setData(
-                    playQueue.getQueue(),
-                    playQueue.getCurrentIndex()
-                )
-            }
-        )
+        // adapter = QueueAdapter(
+        //     songs = playQueue.getQueue().toMutableList(),
+        //     currentIndex = playQueue.getCurrentIndex(),
+        //     onTap = { index ->
+        //         // Send selected index back to MainActivity
+        //         setResult(
+        //             Activity.RESULT_OK,
+        //             Intent().putExtra(EXTRA_JUMP_INDEX, index)
+        //         )
+        //         finish()
+        //     },
+        //     onRemove = { index ->
+        //         playQueue.remove(index)
+        //         // refresh adapter from queue after removal
+        //         adapter.setData(
+        //             playQueue.getQueue(),
+        //             playQueue.getCurrentIndex()
+        //         )
+        //     }
+        // )
 
-        recycler.adapter = adapter
+        // recycler.adapter = adapter
 
-        findViewById<Button>(R.id.buttonRefreshQueue).setOnClickListener {
-            adapter.setData(playQueue.getQueue(), playQueue.getCurrentIndex())
-        }
+        // findViewById<Button>(R.id.buttonRefreshQueue).setOnClickListener {
+        //     adapter.setData(playQueue.getQueue(), playQueue.getCurrentIndex())
+        // }
     }
 
     companion object {
