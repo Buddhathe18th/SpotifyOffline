@@ -20,7 +20,6 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
 
-    <!-- Bottom now-playing bar -->
     <LinearLayout
         android:id="@+id/bottomBar"
         android:layout_width="0dp"
@@ -32,7 +31,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Progress bar (full width, at top) -->
+        <!-- Progress bar -->
         <SeekBar
             android:id="@+id/seekBarProgress"
             android:layout_width="match_parent"
@@ -44,7 +43,7 @@
             android:clickable="false"
             android:focusable="false" />
 
-        <!-- Time labels (current / total) -->
+        <!-- Time labels -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -69,12 +68,13 @@
                 android:textColor="?android:attr/textColorSecondary" />
         </LinearLayout>
 
-        <!-- Song title and play/pause button (horizontal row at bottom) -->
+        <!-- Song title and scan button row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:paddingBottom="8dp">
 
             <TextView
                 android:id="@+id/textNowPlaying"
@@ -92,15 +92,76 @@
                 android:layout_height="wrap_content"
                 android:text="Scan"
                 android:soundEffectsEnabled="false" />
+        </LinearLayout>
+
+        <!-- Playback controls -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingTop="4dp">
+
+            <!-- Shuffle button -->
             <ImageButton
-                android:id="@+id/buttonPlayPause"
+                android:id="@+id/buttonShuffle"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:padding="4dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_sort_alphabetically"
+                android:contentDescription="Shuffle"
+                android:alpha="0.5" />
+
+            <!-- Previous button -->
+            <ImageButton
+                android:id="@+id/buttonPrevious"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="4dp"
+                android:layout_marginStart="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_media_previous"
+                android:contentDescription="Previous"
+                android:enabled="false"
+                android:alpha="0.5" />
+
+            <!-- Play/Pause button (larger) -->
+            <ImageButton
+                android:id="@+id/buttonPlayPause"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="4dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:src="@android:drawable/ic_media_play"
                 android:contentDescription="Play/Pause"
                 android:enabled="false" />
+
+            <!-- Next button -->
+            <ImageButton
+                android:id="@+id/buttonNext"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="4dp"
+                android:layout_marginEnd="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_media_next"
+                android:contentDescription="Next"
+                android:enabled="false"
+                android:alpha="0.5" />
+
+            <!-- Repeat button -->
+            <ImageButton
+                android:id="@+id/buttonRepeat"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="4dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_rotate"
+                android:contentDescription="Repeat"
+                android:alpha="0.5" />
         </LinearLayout>
 
     </LinearLayout>

@@ -24,6 +24,8 @@ import kotlinx.coroutines.withContext
 class MainActivity : ComponentActivity() {
 
     private val musicPlayer = MusicPlayer()
+    private val playQueue = PlayQueue() // Add PlayQueue instance
+
     private val handler = Handler(Looper.getMainLooper())
     private var isUpdatingProgress = false
 
@@ -34,12 +36,18 @@ class MainActivity : ComponentActivity() {
         setContentView(R.layout.activity_main)
 
         val buttonPlayPause = findViewById<ImageButton>(R.id.buttonPlayPause)
+        val buttonNext = findViewById<ImageButton>(R.id.buttonNext)
+        val buttonPrevious = findViewById<ImageButton>(R.id.buttonPrevious)
+        val buttonShuffle = findViewById<ImageButton>(R.id.buttonShuffle)
+        val buttonRepeat = findViewById<ImageButton>(R.id.buttonRepeat)
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerSongs)
         var adapter =
                 SongAdapter(emptyList()) { song -> Log.d("MainActivity", "Clicked: ${song.title}") }
         val scanButton = findViewById<Button>(R.id.buttonScan)
 
         buttonPlayPause.isEnabled = false
+        buttonNext.isEnabled = false
+        buttonPrevious.isEnabled = false
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
@@ -57,6 +65,26 @@ class MainActivity : ComponentActivity() {
                 startProgressUpdates()
                 Log.d("MainActivity", "Resumed playback")
             }
+        }
+
+        // Next button
+        buttonNext.setOnClickListener { playNextSong() }
+
+        // Previous button
+        buttonPrevious.setOnClickListener { playPreviousSong() }
+
+        // Shuffle button
+        buttonShuffle.setOnClickListener {
+            playQueue.toggleShuffle()
+            updateShuffleButton(buttonShuffle)
+            Log.d("MainActivity", "Shuffle: ${playQueue.isShuffleEnabled()}")
+        }
+
+        // Repeat button
+        buttonRepeat.setOnClickListener {
+            playQueue.toggleRepeatMode()
+            updateRepeatButton(buttonRepeat)
+            Log.d("MainActivity", "Repeat mode: ${playQueue.getRepeatMode()}")
         }
 
         scanButton.setOnClickListener {
@@ -85,8 +113,6 @@ class MainActivity : ComponentActivity() {
                 Log.d("MainActivity", "Loaded ${songs.size} songs")
                 setupRecyclerView(songs)
             }
-            // Now the RecyclerView exists, so this works
-
         }
     }
 
@@ -140,34 +166,13 @@ class MainActivity : ComponentActivity() {
                 SongAdapter(songs) { song ->
                     Log.d("MainActivity", "Clicked: ${song.title}")
 
-                    val textNowPlaying = findViewById<TextView>(R.id.textNowPlaying)
-                    val buttonPlayPause = findViewById<ImageButton>(R.id.buttonPlayPause)
-
-                    musicPlayer.play(
-                            context = this,
-                            uri = song.uri,
-                            onPrepared = {
-                                Log.d("MainActivity", "Playback started for ${song.title}")
-                                runOnUiThread {
-                                    textNowPlaying.text = song.title
-                                    buttonPlayPause.setImageResource(
-                                            android.R.drawable.ic_media_pause
-                                    )
-                                    buttonPlayPause.isEnabled = true
-                                    startProgressUpdates() // Start updating progress
-                                }
-                            },
-                            onCompletion = {
-                                Log.d("MainActivity", "Playback completed for ${song.title}")
-                                runOnUiThread {
-                                    textNowPlaying.text = "Nothing playing"
-                                    buttonPlayPause.setImageResource(
-                                            android.R.drawable.ic_media_play
-                                    )
-                                    stopProgressUpdates() // Stop updating progress
-                                }
-                            }
-                    )
+                    // Find the index of the clicked song and set the queue to start there
+                    val clickedIndex = songs.indexOf(song)
+                    if (clickedIndex >= 0) {
+                        playQueue.addToQueue(song)
+                        playSongAtCurrentIndex()
+                        Log.d("MainActivity", "Queue: ${playQueue.getQueue()}")
+                    }
                 }
 
         recyclerView.adapter = adapter
@@ -222,5 +227,91 @@ class MainActivity : ComponentActivity() {
     private fun stopProgressUpdates() {
         isUpdatingProgress = false
         handler.removeCallbacks(updateProgressRunnable)
+    }
+
+    private fun playSongAtCurrentIndex() {
+        val song = playQueue.getCurrentSong() ?: return
+
+        val textNowPlaying = findViewById<TextView>(R.id.textNowPlaying)
+        val buttonPlayPause = findViewById<ImageButton>(R.id.buttonPlayPause)
+
+        musicPlayer.play(
+                context = this,
+                uri = song.uri,
+                onPrepared = {
+                    Log.d("MainActivity", "Playback started for ${song.title}")
+                    runOnUiThread {
+                        textNowPlaying.text = "${song.title} - ${song.artist}"
+                        buttonPlayPause.setImageResource(android.R.drawable.ic_media_pause)
+                        buttonPlayPause.isEnabled = true
+                        updateNavigationButtons()
+                        startProgressUpdates()
+                    }
+                },
+                onCompletion = {
+                    Log.d("MainActivity", "Playback completed for ${song.title}")
+                    runOnUiThread {
+                        if (playQueue.hasNext()) {
+                            playNextSong()
+                            playQueue.remove(
+                                    playQueue.getCurrentIndex() - 1
+                            ) // Remove the finished song
+                        } else {
+                            playQueue.remove(playQueue.getCurrentIndex())
+                            textNowPlaying.text = "Nothing playing"
+                            buttonPlayPause.setImageResource(android.R.drawable.ic_media_play)
+                            buttonPlayPause.isEnabled = false
+                            stopProgressUpdates()
+                            updateNavigationButtons()
+                        }
+                    }
+                }
+        )
+    }
+
+    private fun playNextSong() {
+        val nextSong = playQueue.next()
+        if (nextSong != null) {
+            Log.d("MainActivity", "Playing next: ${nextSong.title}")
+            playSongAtCurrentIndex()
+        } else {
+            Log.d("MainActivity", "No next song available")
+            updateNavigationButtons()
+        }
+    }
+
+    private fun playPreviousSong() {
+        val previousSong = playQueue.previous()
+        if (previousSong != null) {
+            Log.d("MainActivity", "Playing previous: ${previousSong.title}")
+            playSongAtCurrentIndex()
+        } else {
+            Log.d("MainActivity", "No previous song available")
+            updateNavigationButtons()
+        }
+    }
+
+    private fun updateNavigationButtons() {
+        val buttonNext = findViewById<ImageButton>(R.id.buttonNext)
+        val buttonPrevious = findViewById<ImageButton>(R.id.buttonPrevious)
+
+        buttonNext.isEnabled = playQueue.hasNext()
+        buttonPrevious.isEnabled = playQueue.hasPrevious()
+
+        // Visual feedback for disabled buttons
+        buttonNext.alpha = if (playQueue.hasNext()) 1.0f else 0.5f
+        buttonPrevious.alpha = if (playQueue.hasPrevious()) 1.0f else 0.5f
+    }
+
+    private fun updateShuffleButton(button: ImageButton) {
+        button.alpha = if (playQueue.isShuffleEnabled()) 1.0f else 0.5f
+    }
+
+    private fun updateRepeatButton(button: ImageButton) {
+        when (playQueue.getRepeatMode()) {
+            PlayQueue.RepeatMode.NONE -> button.alpha = 0.5f
+            PlayQueue.RepeatMode.ALL -> button.alpha = 1.0f
+            PlayQueue.RepeatMode.ONE -> button.alpha = 1.0f
+        }
     }
 }
