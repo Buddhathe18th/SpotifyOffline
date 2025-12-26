@@ -85,6 +85,13 @@ class MusicPlayer {
         }
     }
 
+    fun seekTo(time: Int){
+        val mp = mediaPlayer
+        if (mp != null && isPrepared) {
+            mp.seekTo(time)
+        }
+    }
+
     fun resume() {
         val mp = mediaPlayer
         if (mp != null && isPrepared && !mp.isPlaying) {

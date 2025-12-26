@@ -246,6 +246,28 @@ class MainActivity : ComponentActivity() {
                             val textCurrent = findViewById<TextView>(R.id.textCurrentTime)
                             val textTotal = findViewById<TextView>(R.id.textTotalTime)
 
+                            seekBar.setOnSeekBarChangeListener(
+                                    object : SeekBar.OnSeekBarChangeListener {
+                                        override fun onProgressChanged(
+                                                seekBar: SeekBar?,
+                                                progress: Int,
+                                                fromUser: Boolean
+                                        ) {
+                                            if (fromUser) {
+                                                musicPlayer.seekTo(progress)
+                                            }
+                                        }
+
+                                        override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                                            // Optional: pause updates while user is dragging
+                                        }
+
+                                        override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                                            // Optional: resume updates after user releases
+                                        }
+                                    }
+                            )
+
                             seekBar.max = duration
                             seekBar.progress = currentPos
 
