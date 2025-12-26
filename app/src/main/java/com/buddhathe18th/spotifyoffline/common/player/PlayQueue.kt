@@ -1,4 +1,7 @@
-package com.buddhathe18th.spotifyoffline
+package com.buddhathe18th.spotifyoffline.common.player
+
+
+import com.buddhathe18th.spotifyoffline.common.models.Song 
 
 /** Manages the current play session with queue operations, shuffle, and repeat modes. */
 class PlayQueue {

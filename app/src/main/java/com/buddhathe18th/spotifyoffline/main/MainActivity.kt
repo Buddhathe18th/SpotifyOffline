@@ -1,4 +1,4 @@
-package com.buddhathe18th.spotifyoffline
+package com.buddhathe18th.spotifyoffline.main
 
 import android.Manifest
 import android.app.Activity
@@ -19,8 +19,15 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.buddhathe18th.spotifyoffline.common.data.MediaStoreSongRepository
+import com.buddhathe18th.spotifyoffline.common.models.Song
+import com.buddhathe18th.spotifyoffline.common.player.MusicPlayer
+import com.buddhathe18th.spotifyoffline.common.player.PlayQueue
+import com.buddhathe18th.spotifyoffline.common.player.QueueManager
+import com.buddhathe18th.spotifyoffline.queue.QueueActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.buddhathe18th.spotifyoffline.R
 import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {

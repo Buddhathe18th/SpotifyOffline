@@ -1,4 +1,4 @@
-package com.buddhathe18th.spotifyoffline
+package com.buddhathe18th.spotifyoffline.queue
 
 import android.graphics.Typeface
 import android.view.LayoutInflater
@@ -9,6 +9,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.buddhathe18th.spotifyoffline.common.models.Song
+import com.buddhathe18th.spotifyoffline.R
+
 
 class QueueAdapter(
     private val songs: MutableList<Song>,

@@ -1,10 +1,12 @@
-package com.buddhathe18th.spotifyoffline
+package com.buddhathe18th.spotifyoffline.main
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.buddhathe18th.spotifyoffline.R
+import com.buddhathe18th.spotifyoffline.common.models.Song
 
 class SongAdapter(private val songs: List<Song>, private val onClick: (Song) -> Unit) :
         RecyclerView.Adapter<SongAdapter.SongViewHolder>() {

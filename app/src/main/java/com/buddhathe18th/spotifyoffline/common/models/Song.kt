@@ -1,4 +1,4 @@
-package com.buddhathe18th.spotifyoffline
+package com.buddhathe18th.spotifyoffline.common.models
 
 import android.net.Uri
 import androidx.annotation.Keep

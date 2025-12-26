@@ -1,4 +1,4 @@
-package com.buddhathe18th.spotifyoffline
+package com.buddhathe18th.spotifyoffline.queue
 
 import android.app.Activity
 import android.content.Intent
@@ -7,6 +7,9 @@ import android.widget.Button
 import androidx.activity.ComponentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.buddhathe18th.spotifyoffline.common.player.QueueManager
+import com.buddhathe18th.spotifyoffline.R
+
 
 class QueueActivity : ComponentActivity() {
 

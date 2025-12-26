@@ -1,4 +1,4 @@
-package com.buddhathe18th.spotifyoffline
+package com.buddhathe18th.spotifyoffline.common.data
 
 import android.content.ContentUris
 import android.content.Context
@@ -10,6 +10,7 @@ import android.provider.BaseColumns
 import android.provider.MediaStore
 import android.util.Log
 import java.io.File
+import com.buddhathe18th.spotifyoffline.common.models.Song
 
 object MediaStoreSongRepository {
 
