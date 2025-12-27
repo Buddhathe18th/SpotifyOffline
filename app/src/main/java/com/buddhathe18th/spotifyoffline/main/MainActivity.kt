@@ -214,7 +214,6 @@ class MainActivity : ComponentActivity() {
                             Log.d("MainActivity", "Song: ${song.title} is a new song in queue")
 
                             playQueue.addToQueue(0, song)
-                            Log.d("MainActivity", "${playQueue.getQueue()}")
                             playQueue.setQueue(playQueue.getQueue(), 0)
                         }
                         playSongAtCurrentIndex()
@@ -301,7 +300,8 @@ class MainActivity : ComponentActivity() {
     private fun playSongAtCurrentIndex() {
         val song = playQueue.getCurrentSong() ?: return
 
-        val textNowPlaying = findViewById<TextView>(R.id.textNowPlaying)
+        val textTitle = findViewById<TextView>(R.id.nowPlayingTitle)
+        val textArtist = findViewById<TextView>(R.id.nowPlayingArtist)
         val buttonPlayPause = findViewById<ImageButton>(R.id.buttonPlayPause)
 
         musicPlayer.play(
@@ -310,7 +310,9 @@ class MainActivity : ComponentActivity() {
                 onPrepared = {
                     Log.d("MainActivity", "Playback started for ${song.title}")
                     runOnUiThread {
-                        textNowPlaying.text = "${song.title} - ${song.artist}"
+
+                        textTitle.text = "${song.title}"
+                        textArtist.text = "${song.artists.joinToString(", ")}"
                         buttonPlayPause.setImageResource(android.R.drawable.ic_media_pause)
                         buttonPlayPause.isEnabled = true
                         updateNavigationButtons()
@@ -323,7 +325,9 @@ class MainActivity : ComponentActivity() {
                         if (playQueue.hasNext()) {
                             playNextSong()
                         } else {
-                            textNowPlaying.text = "Nothing playing"
+                            textTitle.text = "Nothing playing"
+                            textArtist.text = ""
+
                             buttonPlayPause.setImageResource(android.R.drawable.ic_media_play)
                             buttonPlayPause.isEnabled = false
                             stopProgressUpdates()

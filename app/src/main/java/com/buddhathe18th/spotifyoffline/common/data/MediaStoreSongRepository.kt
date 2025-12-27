@@ -60,6 +60,7 @@ object MediaStoreSongRepository {
                         Song(
                                 title = title,
                                 artist = artist,
+                                artists = getArtists(artist),
                                 uri = contentUri,
                                 durationMs = durationMs
                         )
@@ -67,6 +68,11 @@ object MediaStoreSongRepository {
         }
 
         return songs
+    }
+
+
+    private fun getArtists(artistString: String): List<String> {
+        return artistString.split(";").map { it.trim() }.filter { it.isNotEmpty() }
     }
 
     private fun getMetadataTitle(context: Context, uri: Uri): String? {

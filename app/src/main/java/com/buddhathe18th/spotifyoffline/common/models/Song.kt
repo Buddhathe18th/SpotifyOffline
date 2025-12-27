@@ -7,6 +7,7 @@ import androidx.annotation.Keep
 data class Song(
     val title: String,
     val artist: String,
+    val artists: List<String>,
     val uri: Uri,
     val durationMs: Long
 )

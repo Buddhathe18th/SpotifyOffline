@@ -62,7 +62,7 @@ class QueueAdapter(
 
     class VH(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val root: LinearLayout = itemView.findViewById(R.id.root)
-        val textTitle: TextView = itemView.findViewById(R.id.textTitle)
+        val textTitle: TextView = itemView.findViewById(R.id.queueSongTitle)
         val buttonRemove: Button = itemView.findViewById(R.id.buttonRemove)
     }
 }

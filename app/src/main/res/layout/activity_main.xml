@@ -76,22 +76,43 @@
             android:gravity="center_vertical"
             android:paddingBottom="8dp">
 
-            <TextView
-                android:id="@+id/textNowPlaying"
+            <!-- Album art placeholder -->
+            <ImageView
+                android:id="@+id/imageAlbumArt"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_marginEnd="12dp"
+                android:scaleType="centerCrop"
+                android:background="@android:color/darker_gray"
+                android:contentDescription="Album art" />
+
+            <!-- Title and artist stacked vertically -->
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Nothing playing"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textAppearance="@android:style/TextAppearance.Medium" />
+                android:orientation="vertical">
 
-            <Button
-                android:id="@+id/buttonScan"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Scan"
-                android:soundEffectsEnabled="false" />
+                <TextView
+                    android:id="@+id/nowPlayingTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Nothing playing"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="@android:style/TextAppearance.Medium"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/nowPlayingArtist"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="@android:style/TextAppearance.Small"
+                    android:textColor="?android:attr/textColorSecondary" />
+            </LinearLayout>
 
             <Button
                 android:id="@+id/buttonViewQueue"
@@ -99,6 +120,7 @@
                 android:layout_height="wrap_content"
                 android:text="View Queue" />
         </LinearLayout>
+
 
         <!-- Playback controls -->
         <LinearLayout
@@ -108,6 +130,12 @@
             android:gravity="center"
             android:paddingTop="4dp">
 
+            <Button
+                android:id="@+id/buttonScan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Scan"
+                android:soundEffectsEnabled="false" />
             <!-- Shuffle button -->
             <ImageButton
                 android:id="@+id/buttonShuffle"

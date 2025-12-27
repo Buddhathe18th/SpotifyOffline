@@ -12,8 +12,8 @@ class SongAdapter(private val songs: List<Song>, private val onClick: (Song) -> 
         RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
     inner class SongViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val textTitle: TextView = itemView.findViewById(R.id.textTitle)
-        val textArtist: TextView = itemView.findViewById(R.id.textArtist)
+        val textTitle: TextView = itemView.findViewById(R.id.songTitle)
+        val textArtist: TextView = itemView.findViewById(R.id.songArtist)
 
         fun bind(song: Song) {
             textTitle.text = song.title

@@ -8,7 +8,7 @@
     android:background="?android:attr/selectableItemBackground">
 
     <TextView
-        android:id="@+id/textTitle"
+        android:id="@+id/songTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Song Title"
@@ -18,7 +18,7 @@
         android:maxLines="1" />
 
     <TextView
-        android:id="@+id/textArtist"
+        android:id="@+id/songArtist"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ellipsize="end"
