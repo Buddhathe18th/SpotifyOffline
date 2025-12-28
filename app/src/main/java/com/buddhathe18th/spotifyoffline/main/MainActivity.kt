@@ -4,31 +4,27 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.WindowInsets
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
-import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.buddhathe18th.spotifyoffline.R
+import com.buddhathe18th.spotifyoffline.common.BaseActivity
 import com.buddhathe18th.spotifyoffline.common.data.MediaStoreSongRepository
 import com.buddhathe18th.spotifyoffline.common.models.Song
 import com.buddhathe18th.spotifyoffline.common.player.MusicPlayer
 import com.buddhathe18th.spotifyoffline.common.player.PlayQueue
 import com.buddhathe18th.spotifyoffline.common.player.QueueManager
-import com.buddhathe18th.spotifyoffline.common.BaseActivity
 import com.buddhathe18th.spotifyoffline.queue.QueueActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -235,6 +231,7 @@ class MainActivity : BaseActivity() {
         stopProgressUpdates()
         Log.d("MainActivity", "Activity destroyed, released player")
     }
+    private var isUserDragging = false
 
     private val updateProgressRunnable =
             object : Runnable {
@@ -254,24 +251,23 @@ class MainActivity : BaseActivity() {
                                                 seekBar: SeekBar?,
                                                 progress: Int,
                                                 fromUser: Boolean
-                                        ) {
-                                            if (fromUser) {
-                                                musicPlayer.seekTo(progress)
-                                            }
-                                        }
+                                        ) {}
 
                                         override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                                            // Optional: pause updates while user is dragging
+                                            isUserDragging = true
                                         }
 
                                         override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                                            // Optional: resume updates after user releases
+                                            isUserDragging = false
+                                            seekBar?.let { musicPlayer.seekTo(it.progress) }
                                         }
                                     }
                             )
 
                             seekBar.max = duration
-                            seekBar.progress = currentPos
+                            if (!isUserDragging){
+                                seekBar.progress = currentPos
+                            }
 
                             textCurrent.text = formatTime(currentPos)
                             textTotal.text = formatTime(duration)
