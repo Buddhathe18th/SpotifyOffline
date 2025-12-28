@@ -1,4 +1,4 @@
-package com.buddhathe18th.spotifyoffline
+package com.buddhathe18th.spotifyoffline.common.data
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
