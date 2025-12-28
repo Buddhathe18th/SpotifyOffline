@@ -17,7 +17,7 @@ class SongAdapter(private val songs: List<Song>, private val onClick: (Song) -> 
 
         fun bind(song: Song) {
             textTitle.text = song.title
-            textArtist.text = song.artist
+            textArtist.text = song.artists.joinToString(", ")
 
             // Set click listener on the whole item
             itemView.setOnClickListener { onClick(song) }

@@ -28,12 +28,13 @@ import com.buddhathe18th.spotifyoffline.common.models.Song
 import com.buddhathe18th.spotifyoffline.common.player.MusicPlayer
 import com.buddhathe18th.spotifyoffline.common.player.PlayQueue
 import com.buddhathe18th.spotifyoffline.common.player.QueueManager
+import com.buddhathe18th.spotifyoffline.common.BaseActivity
 import com.buddhathe18th.spotifyoffline.queue.QueueActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class MainActivity : ComponentActivity() {
+class MainActivity : BaseActivity() {
 
     private val musicPlayer = MusicPlayer()
     private val playQueue = QueueManager.playQueue
@@ -64,25 +65,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
-
-        // Change color to theme later
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) { // Android 15+
-            window.decorView.setOnApplyWindowInsetsListener { view, insets ->
-                val statusBarInsets = insets.getInsets(WindowInsets.Type.statusBars())
-                view.setBackgroundColor(Color.WHITE)
-
-                // Adjust padding to avoid overlap
-                view.setPadding(0, statusBarInsets.top, 0, 0)
-                insets
-            }
-            val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-            windowInsetsController.isAppearanceLightStatusBars = true
-        } else {
-            // For Android 14 and below
-            val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-            windowInsetsController.isAppearanceLightStatusBars = true
-            window.statusBarColor = Color.BLACK
-        }
 
         val buttonPlayPause = findViewById<ImageButton>(R.id.buttonPlayPause)
         val buttonNext = findViewById<ImageButton>(R.id.buttonNext)

@@ -10,8 +10,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.buddhathe18th.spotifyoffline.R
 import com.buddhathe18th.spotifyoffline.common.player.QueueManager
+import com.buddhathe18th.spotifyoffline.common.BaseActivity
 
-class QueueActivity : ComponentActivity() {
+class QueueActivity : BaseActivity() {
 
     private val playQueue = QueueManager.playQueue
     private lateinit var adapter: QueueAdapter
