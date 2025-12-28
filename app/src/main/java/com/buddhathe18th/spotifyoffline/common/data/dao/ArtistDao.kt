@@ -2,6 +2,8 @@ package com.buddhathe18th.spotifyoffline.common.data.dao
 
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
+import com.buddhathe18th.spotifyoffline.common.data.database.ArtistEntity
+import com.buddhathe18th.spotifyoffline.common.data.database.ArtistWithSongs
 
 @Dao
 interface ArtistDao {

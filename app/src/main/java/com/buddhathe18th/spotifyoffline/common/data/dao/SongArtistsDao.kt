@@ -1,6 +1,7 @@
 package com.buddhathe18th.spotifyoffline
 
 import androidx.room.*
+import com.buddhathe18th.spotifyoffline.common.data.database.SongArtistCrossRef
 
 @Dao
 interface SongArtistDao {
