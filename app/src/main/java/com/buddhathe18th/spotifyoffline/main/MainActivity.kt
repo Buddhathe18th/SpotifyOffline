@@ -4,11 +4,13 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.WindowInsets
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.SeekBar
@@ -16,6 +18,7 @@ import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -60,8 +63,26 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Inflate the layout FIRST
         setContentView(R.layout.activity_main)
+
+        // Change color to theme later
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) { // Android 15+
+            window.decorView.setOnApplyWindowInsetsListener { view, insets ->
+                val statusBarInsets = insets.getInsets(WindowInsets.Type.statusBars())
+                view.setBackgroundColor(Color.WHITE)
+
+                // Adjust padding to avoid overlap
+                view.setPadding(0, statusBarInsets.top, 0, 0)
+                insets
+            }
+            val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+            windowInsetsController.isAppearanceLightStatusBars = true
+        } else {
+            // For Android 14 and below
+            val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+            windowInsetsController.isAppearanceLightStatusBars = true
+            window.statusBarColor = Color.BLACK
+        }
 
         val buttonPlayPause = findViewById<ImageButton>(R.id.buttonPlayPause)
         val buttonNext = findViewById<ImageButton>(R.id.buttonNext)
@@ -310,7 +331,6 @@ class MainActivity : ComponentActivity() {
                 onPrepared = {
                     Log.d("MainActivity", "Playback started for ${song.title}")
                     runOnUiThread {
-
                         textTitle.text = "${song.title}"
                         textArtist.text = "${song.artists.joinToString(", ")}"
                         buttonPlayPause.setImageResource(android.R.drawable.ic_media_pause)
