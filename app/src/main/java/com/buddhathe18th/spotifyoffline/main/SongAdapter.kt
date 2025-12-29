@@ -3,7 +3,9 @@ package com.buddhathe18th.spotifyoffline.main
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
+import android.graphics.BitmapFactory
 import androidx.recyclerview.widget.RecyclerView
 import com.buddhathe18th.spotifyoffline.R
 import com.buddhathe18th.spotifyoffline.common.models.Song
@@ -14,10 +16,17 @@ class SongAdapter(private val songs: List<Song>, private val onClick: (Song) -> 
     inner class SongViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textTitle: TextView = itemView.findViewById(R.id.songTitle)
         val textArtist: TextView = itemView.findViewById(R.id.songArtist)
+        val albumArt = itemView.findViewById<ImageView>(R.id.songAlbumArt)
 
         fun bind(song: Song) {
             textTitle.text = song.title
             textArtist.text = song.artists.joinToString(", ")
+
+            song.imageAlbumArt?.let { byteArray ->
+                val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+                albumArt.setImageBitmap(bitmap)
+            }
+                    ?: run { albumArt.setBackgroundColor(android.graphics.Color.DKGRAY) }
 
             // Set click listener on the whole item
             itemView.setOnClickListener { onClick(song) }

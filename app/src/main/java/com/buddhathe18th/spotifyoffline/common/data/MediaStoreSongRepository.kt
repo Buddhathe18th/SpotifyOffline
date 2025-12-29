@@ -9,8 +9,8 @@ import android.os.Environment
 import android.provider.BaseColumns
 import android.provider.MediaStore
 import android.util.Log
-import java.io.File
 import com.buddhathe18th.spotifyoffline.common.models.Song
+import java.io.File
 
 object MediaStoreSongRepository {
 
@@ -27,7 +27,8 @@ object MediaStoreSongRepository {
                         MediaStore.Audio.Media.TITLE,
                         MediaStore.Audio.Media.ARTIST,
                         MediaStore.Audio.Media.DURATION,
-                        MediaStore.Audio.Media.DATA // deprecated but fine for this path filter task
+                        MediaStore.Audio.Media.DATA,
+                        MediaStore.Audio.Media.ALBUM
                 )
 
         // Only music files, and only those whose path contains "/Music/SpotifyOffline/"
@@ -43,6 +44,7 @@ object MediaStoreSongRepository {
             val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
             val artistCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
             val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+            val albumCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
 
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idCol)
@@ -55,6 +57,9 @@ object MediaStoreSongRepository {
                 Log.d("MediaStoreSongRepository", "RETRIEVED TITLE: $title")
                 val artist = cursor.getString(artistCol) ?: "Unknown artist"
                 val durationMs = cursor.getLong(durationCol)
+                val album = cursor.getString(albumCol)
+
+                val albumArt = getEmbeddedAlbumArt(context, contentUri)
 
                 songs +=
                         Song(
@@ -62,7 +67,9 @@ object MediaStoreSongRepository {
                                 artist = artist,
                                 artists = getArtists(artist),
                                 uri = contentUri,
-                                durationMs = durationMs
+                                durationMs = durationMs,
+                                album = album,
+                                imageAlbumArt = albumArt
                         )
             }
         }
@@ -70,6 +77,18 @@ object MediaStoreSongRepository {
         return songs
     }
 
+    private fun getEmbeddedAlbumArt(context: Context, uri: Uri): ByteArray? {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(context, uri)
+            retriever.embeddedPicture // Returns ByteArray of the image or null
+        } catch (e: Exception) {
+            Log.e("MediaStoreSongRepository", "Could not read album art for ${uri}", e)
+            null
+        } finally {
+            retriever.release()
+        }
+    }
 
     private fun getArtists(artistString: String): List<String> {
         return artistString.split(";").map { it.trim() }.filter { it.isNotEmpty() }

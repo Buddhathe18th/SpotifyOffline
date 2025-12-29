@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -13,6 +14,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
+import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -265,7 +267,7 @@ class MainActivity : BaseActivity() {
                             )
 
                             seekBar.max = duration
-                            if (!isUserDragging){
+                            if (!isUserDragging) {
                                 seekBar.progress = currentPos
                             }
 
@@ -302,6 +304,7 @@ class MainActivity : BaseActivity() {
         val textTitle = findViewById<TextView>(R.id.nowPlayingTitle)
         val textArtist = findViewById<TextView>(R.id.nowPlayingArtist)
         val buttonPlayPause = findViewById<ImageButton>(R.id.buttonPlayPause)
+        val imageAlbumArt = findViewById<ImageView>(R.id.imageAlbumArt)
 
         musicPlayer.play(
                 context = this,
@@ -311,6 +314,15 @@ class MainActivity : BaseActivity() {
                     runOnUiThread {
                         textTitle.text = "${song.title}"
                         textArtist.text = "${song.artists.joinToString(", ")}"
+
+                        song.imageAlbumArt?.let { byteArray ->
+                            val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+                            imageAlbumArt.setImageBitmap(bitmap)
+                        }
+                                ?: run {
+                                    imageAlbumArt.setBackgroundColor(android.graphics.Color.DKGRAY)
+                                }
+
                         buttonPlayPause.setImageResource(android.R.drawable.ic_media_pause)
                         buttonPlayPause.isEnabled = true
                         updateNavigationButtons()
