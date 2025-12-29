@@ -176,7 +176,7 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    private fun databseTest() {
+    private fun databaseTest() {
         lifecycleScope.launch {
             val db = AppDatabase.getDatabase(this@MainActivity)
 
@@ -194,7 +194,8 @@ class MainActivity : BaseActivity() {
                                                 album = "A Night at the Opera",
                                                 durationMs = 354000,
                                                 dateAdded = System.currentTimeMillis(),
-                                                titleNormalized = "bohemian rhapsody"
+                                                titleNormalized = "bohemian rhapsody",
+                                                uri = "content://media/external/audio/media/1"
                                         )
                                 )
                         )

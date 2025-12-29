@@ -16,5 +16,6 @@ data class SongEntity(
     val durationMs: Long,
     val dateAdded: Long,
     @ColumnInfo(name = "title_normalized") 
-    val titleNormalized: String
+    val titleNormalized: String,
+    val uri: String
 )

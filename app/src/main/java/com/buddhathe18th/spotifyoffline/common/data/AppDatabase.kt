@@ -17,7 +17,7 @@ import com.buddhathe18th.spotifyoffline.common.data.dao.SongArtistDao
         ArtistEntity::class,
         SongArtistCrossRef::class
     ],
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
