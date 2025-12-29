@@ -44,7 +44,6 @@ class QueueActivity : BaseActivity() {
                         onRemove = { index ->
                             playQueue.remove(index)
                             // TODO: if removed current song, stop playback
-                            // refresh adapter from queue after removal
                             adapter.setData(playQueue.getQueue(), playQueue.getCurrentIndex())
                         }
                 )
