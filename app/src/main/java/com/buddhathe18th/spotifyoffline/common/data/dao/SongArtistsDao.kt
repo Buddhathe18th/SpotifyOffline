@@ -1,4 +1,4 @@
-package com.buddhathe18th.spotifyoffline
+package com.buddhathe18th.spotifyoffline.common.data.dao
 
 import androidx.room.*
 import com.buddhathe18th.spotifyoffline.common.data.database.SongArtistCrossRef
