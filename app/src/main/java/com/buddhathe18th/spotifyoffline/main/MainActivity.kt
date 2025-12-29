@@ -4,31 +4,32 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.WindowInsets
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
-import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.buddhathe18th.spotifyoffline.R
-import com.buddhathe18th.spotifyoffline.common.data.MediaStoreSongRepository
+import com.buddhathe18th.spotifyoffline.common.BaseActivity
+import com.buddhathe18th.spotifyoffline.common.data.AppDatabase
+import com.buddhathe18th.spotifyoffline.common.data.database.ArtistEntity
+import com.buddhathe18th.spotifyoffline.common.data.database.SongArtistCrossRef
+import com.buddhathe18th.spotifyoffline.common.data.database.SongEntity
+import com.buddhathe18th.spotifyoffline.common.data.repository.MediaStoreSongRepository
+import com.buddhathe18th.spotifyoffline.common.data.repository.SongCacheRepository
 import com.buddhathe18th.spotifyoffline.common.models.Song
 import com.buddhathe18th.spotifyoffline.common.player.MusicPlayer
 import com.buddhathe18th.spotifyoffline.common.player.PlayQueue
 import com.buddhathe18th.spotifyoffline.common.player.QueueManager
-import com.buddhathe18th.spotifyoffline.common.BaseActivity
 import com.buddhathe18th.spotifyoffline.queue.QueueActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -139,15 +140,95 @@ class MainActivity : BaseActivity() {
         }
 
         // Now permission callback can safely access views
+        // ensureAudioPermission {
+        //     Log.d("MainActivity", "Permission granted")
+        //     lifecycleScope.launch {
+        //         val songs =
+        //                 withContext(Dispatchers.IO) {
+        //                     MediaStoreSongRepository.loadSongs(this@MainActivity)
+        //                 }
+        //         Log.d("MainActivity", "Loaded ${songs.size} songs")
+        //         setupRecyclerView(songs)
+        //     }
+        // }
+
         ensureAudioPermission {
-            Log.d("MainActivity", "Permission granted")
+            Log.d("MainActivity", "Permission granted, starting sync...")
+
             lifecycleScope.launch {
-                val songs =
-                        withContext(Dispatchers.IO) {
-                            MediaStoreSongRepository.loadSongs(this@MainActivity)
+                val repository = SongCacheRepository(this@MainActivity)
+
+                try {
+                    repository.syncFromMediaStore(this@MainActivity)
+
+                    // After sync, display songs
+                    val db = AppDatabase.getDatabase(this@MainActivity)
+                    db.songDao().getAllSongsWithArtists().collect { songs ->
+                        Log.d("MainActivity", "Loaded ${songs.size} songs")
+                        songs.forEach { song ->
+                            Log.d("MainActivity", "${song.song.title} by ${song.artistNames}")
                         }
-                Log.d("MainActivity", "Loaded ${songs.size} songs")
-                setupRecyclerView(songs)
+                    }
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Sync failed", e)
+                }
+            }
+        }
+    }
+
+    private fun databseTest() {
+        lifecycleScope.launch {
+            val db = AppDatabase.getDatabase(this@MainActivity)
+
+            withContext(Dispatchers.IO) {
+                db.songDao().deleteAll()
+                db.artistDao().deleteAll()
+                db.songArtistDao().deleteAll()
+
+                db.songDao()
+                        .insertSongs(
+                                listOf(
+                                        SongEntity(
+                                                id = "test1",
+                                                title = "Bohemian Rhapsody",
+                                                album = "A Night at the Opera",
+                                                durationMs = 354000,
+                                                dateAdded = System.currentTimeMillis(),
+                                                titleNormalized = "bohemian rhapsody"
+                                        )
+                                )
+                        )
+
+                db.artistDao()
+                        .insertArtists(
+                                listOf(
+                                        ArtistEntity(
+                                                id = "queen",
+                                                name = "Queen",
+                                                nameNormalized = "queen"
+                                        ),
+                                        ArtistEntity(
+                                                id = "bowie",
+                                                name = "David Bowie",
+                                                nameNormalized = "david bowie"
+                                        )
+                                )
+                        )
+
+                db.songArtistDao()
+                        .insertAll(
+                                listOf(
+                                        SongArtistCrossRef("test1", "queen", order = 0),
+                                        SongArtistCrossRef("test1", "bowie", order = 1)
+                                )
+                        )
+            }
+
+            db.songDao().getAllSongsWithArtists().collect { songs ->
+                songs.forEach { songWithArtists ->
+                    Log.d("Database", "Song: ${songWithArtists.song.title}")
+                    Log.d("Database", "Artists: ${songWithArtists.artistNames}")
+                }
             }
         }
     }

@@ -1,4 +1,4 @@
-package com.buddhathe18th.spotifyoffline.common.data
+package com.buddhathe18th.spotifyoffline.common.data.repository
 
 import android.content.ContentUris
 import android.content.Context
