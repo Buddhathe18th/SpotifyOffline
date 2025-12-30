@@ -28,7 +28,7 @@ import com.buddhathe18th.spotifyoffline.R
 import com.buddhathe18th.spotifyoffline.common.BaseActivity
 import com.buddhathe18th.spotifyoffline.common.data.AppDatabase
 import com.buddhathe18th.spotifyoffline.common.data.repository.SongCacheRepository
-import com.buddhathe18th.spotifyoffline.common.player.MusicPlayer
+import com.buddhathe18th.spotifyoffline.common.player.MusicPlayerManager
 import com.buddhathe18th.spotifyoffline.common.player.PlayQueue
 import com.buddhathe18th.spotifyoffline.common.player.QueueManager
 import com.buddhathe18th.spotifyoffline.queue.QueueActivity
@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity() {
 
-    private val musicPlayer = MusicPlayer()
+    private val musicPlayer = MusicPlayerManager.musicPlayer
     private val playQueue = QueueManager.playQueue
 
     private val handler = Handler(Looper.getMainLooper())
@@ -48,14 +48,39 @@ class MainActivity : BaseActivity() {
     private val queueLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == Activity.RESULT_OK) {
+                    val playCurrent =
+                            result.data?.getBooleanExtra(QueueActivity.EXTRA_PLAY_CURRENT, false)
+                                    ?: false
+
+                    // Handle play current FIRST
+                    if (playCurrent) {
+                        Log.d("MainActivity", "Playing song at current index after removal")
+                        if (playQueue.getCurrentSong() != null) {
+                            playSongAtCurrentIndex()
+                        } else {
+                            // Queue is empty, stop playback
+                            Log.d("MainActivity", "Queue empty after removal, stopping playback")
+                            musicPlayer.stopAndRelease()
+                            findViewById<TextView>(R.id.nowPlayingTitle).text = "Nothing playing"
+                            findViewById<TextView>(R.id.nowPlayingArtist).text = ""
+                            findViewById<ImageButton>(R.id.buttonPlayPause).apply {
+                                setImageResource(android.R.drawable.ic_media_play)
+                                isEnabled = false
+                            }
+                            stopProgressUpdates()
+                            updateNavigationButtons()
+                        }
+                        return@registerForActivityResult
+                    }
+
+                    // Handle jump index only if playCurrent wasn't set
                     val jumpIndex =
                             result.data?.getIntExtra(QueueActivity.EXTRA_JUMP_INDEX, -1) ?: -1
-                    Log.d(
-                            "MainActivity",
-                            "Jumping to index from queue: ${jumpIndex} to song ${playQueue.getQueue()[jumpIndex].song.title}"
-                    )
-
                     if (jumpIndex >= 0) {
+                        Log.d(
+                                "MainActivity",
+                                "Jumping to index from queue: $jumpIndex to song ${playQueue.getQueue()[jumpIndex].song.title}"
+                        )
                         playQueue.setCurrentIndex(jumpIndex)
                         playSongAtCurrentIndex()
                     }
@@ -104,8 +129,17 @@ class MainActivity : BaseActivity() {
                                 "MainActivity",
                                 "Song: ${songWithArtists.song.title} is a new song in queue"
                         )
-                        playQueue.addToQueue(0, songWithArtists)
-                        playQueue.setQueue(playQueue.getQueue(), 0)
+
+                        if (playQueue.size() == 0) {
+                            playQueue.addToQueue(0, songWithArtists)
+                            playQueue.setQueue(playQueue.getQueue(), 0)
+                        } else {
+                            playQueue.addToQueue(playQueue.getCurrentIndex() + 1, songWithArtists)
+                            playQueue.setQueue(
+                                    playQueue.getQueue(),
+                                    playQueue.getCurrentIndex() + 1
+                            )
+                        }
                     }
                     playSongAtCurrentIndex()
                 }
@@ -324,7 +358,7 @@ class MainActivity : BaseActivity() {
                             imageAlbumArt.setImageResource(0) // Clear previous image
                             imageAlbumArt.setBackgroundColor(android.graphics.Color.DKGRAY)
                         }
-                        
+
                         buttonPlayPause.setImageResource(android.R.drawable.ic_media_pause)
                         buttonPlayPause.isEnabled = true
                         updateNavigationButtons()

@@ -5,17 +5,18 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
-import androidx.activity.ComponentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.buddhathe18th.spotifyoffline.R
-import com.buddhathe18th.spotifyoffline.common.player.QueueManager
 import com.buddhathe18th.spotifyoffline.common.BaseActivity
+import com.buddhathe18th.spotifyoffline.common.player.MusicPlayerManager
+import com.buddhathe18th.spotifyoffline.common.player.QueueManager
 
 class QueueActivity : BaseActivity() {
 
     private val playQueue = QueueManager.playQueue
     private lateinit var adapter: QueueAdapter
+    private val musicPlayer = MusicPlayerManager.musicPlayer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,9 +43,30 @@ class QueueActivity : BaseActivity() {
                             finish()
                         },
                         onRemove = { index ->
-                            playQueue.remove(index)
-                            // TODO: if removed current song, stop playback
-                            adapter.setData(playQueue.getQueue(), playQueue.getCurrentIndex())
+                            Log.d(
+                                    "QueueActivity",
+                                    "Removed index: $index, currentIndex now: ${playQueue.getCurrentIndex()}"
+                            )
+
+                            if (index == playQueue.getCurrentIndex()) {
+                                if (index == playQueue.size() - 1) {
+                                    // If last song is removed, move current index back by one
+                                    playQueue.remove(index)
+                                } else {
+                                    playQueue.remove(index)
+                                    playQueue.setQueue(
+                                            playQueue.getQueue(),
+                                            playQueue.getCurrentIndex() + 1
+                                    )
+                                }
+                                setResult(
+                                        Activity.RESULT_OK,
+                                        Intent().putExtra(EXTRA_PLAY_CURRENT, true)
+                                )
+                                finish()
+                            } else {
+                                adapter.setData(playQueue.getQueue(), playQueue.getCurrentIndex())
+                            }
                         }
                 )
 
@@ -57,5 +79,6 @@ class QueueActivity : BaseActivity() {
 
     companion object {
         const val EXTRA_JUMP_INDEX = "jump_index"
+        const val EXTRA_PLAY_CURRENT = "play_current"
     }
 }
