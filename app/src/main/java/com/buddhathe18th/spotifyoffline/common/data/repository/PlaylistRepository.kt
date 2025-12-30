@@ -52,7 +52,7 @@ class PlaylistRepository(context: Context) {
             withContext(Dispatchers.IO) {
                 try {
                     // Find position of song to remove
-                    val songs = playlistDao.getPlaylistSongsInOrder(playlistId)
+                    // val songs = playlistDao.getPlaylistSongsInOrder(playlistId)
                     // Remove and reorder
                     playlistSongDao.removeSongFromPlaylist(playlistId, songId)
                     true

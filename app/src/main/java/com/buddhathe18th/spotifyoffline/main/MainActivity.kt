@@ -4,8 +4,9 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -13,9 +14,9 @@ import android.os.Looper
 import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.TextView
-import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
@@ -316,18 +317,23 @@ class MainActivity : BaseActivity() {
                 uri = Uri.parse(song.song.uri),
                 onPrepared = {
                     Log.d("MainActivity", "Playback started for ${song.song.title}")
+                    val albumArtBytes = getEmbeddedAlbumArt(Uri.parse(song.song.uri))
                     runOnUiThread {
-                        textTitle.text = "${song.title}"
+                        textTitle.text = "${song.song.title}"
                         textArtist.text = "${song.artists.joinToString(", ")}"
-
-                        song.imageAlbumArt?.let { byteArray ->
-                            val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+                        if (albumArtBytes != null) {
+                            val bitmap =
+                                    BitmapFactory.decodeByteArray(
+                                            albumArtBytes,
+                                            0,
+                                            albumArtBytes.size
+                                    )
                             imageAlbumArt.setImageBitmap(bitmap)
+                        } else {
+                            imageAlbumArt.setImageResource(0) // Clear previous image
+                            imageAlbumArt.setBackgroundColor(android.graphics.Color.DKGRAY)
                         }
-                                ?: run {
-                                    imageAlbumArt.setBackgroundColor(android.graphics.Color.DKGRAY)
-                                }
-
+                        
                         buttonPlayPause.setImageResource(android.R.drawable.ic_media_pause)
                         buttonPlayPause.isEnabled = true
                         updateNavigationButtons()
@@ -350,6 +356,19 @@ class MainActivity : BaseActivity() {
                     }
                 }
         )
+    }
+
+    private fun getEmbeddedAlbumArt(uri: Uri): ByteArray? {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(this, uri)
+            retriever.embeddedPicture // Returns ByteArray or null
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Could not read album art for $uri", e)
+            null
+        } finally {
+            retriever.release()
+        }
     }
 
     private fun playNextSong() {

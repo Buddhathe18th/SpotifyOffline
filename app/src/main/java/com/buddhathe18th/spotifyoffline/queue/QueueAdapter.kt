@@ -2,6 +2,9 @@ package com.buddhathe18th.spotifyoffline.queue
 
 import android.graphics.BitmapFactory
 import android.graphics.Typeface
+import android.media.MediaMetadataRetriever
+import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,16 +15,13 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.buddhathe18th.spotifyoffline.R
-import com.buddhathe18th.spotifyoffline.common.models.Song
 import com.buddhathe18th.spotifyoffline.common.data.database.SongWithArtists
-import com.buddhathe18th.spotifyoffline.R
-
 
 class QueueAdapter(
-    private val songs: MutableList<SongWithArtists>,
-    private var currentIndex: Int,
-    private val onTap: (index: Int) -> Unit,
-    private val onRemove: (index: Int) -> Unit
+        private val songs: MutableList<SongWithArtists>,
+        private var currentIndex: Int,
+        private val onTap: (index: Int) -> Unit,
+        private val onRemove: (index: Int) -> Unit
 ) : RecyclerView.Adapter<QueueAdapter.VH>() {
 
     fun setData(newSongs: List<SongWithArtists>, newCurrentIndex: Int) {
@@ -37,17 +37,32 @@ class QueueAdapter(
         return VH(view)
     }
 
+    private fun getEmbeddedAlbumArt(context: android.content.Context, uri: Uri): ByteArray? {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(context, uri)
+            retriever.embeddedPicture // Returns ByteArray or null
+        } catch (e: Exception) {
+            Log.e("QueueAdapter", "Could not read album art for $uri", e)
+            null
+        } finally {
+            retriever.release()
+        }
+    }
+
     override fun onBindViewHolder(holder: VH, position: Int) {
         val song = songs[position]
         holder.textTitle.text = "${song.song.title}"
         holder.textArtist.text = "${song.artists.joinToString(", ")}"
-        song.imageAlbumArt?.let { art ->
-            val bitmap = BitmapFactory.decodeByteArray(art, 0, art.size)
+
+        val albumArtBytes = getEmbeddedAlbumArt(holder.itemView.context, Uri.parse(song.song.uri))
+        if (albumArtBytes != null) {
+            val bitmap = BitmapFactory.decodeByteArray(albumArtBytes, 0, albumArtBytes.size)
             holder.albumImage.setImageBitmap(bitmap)
+        } else {
+            holder.albumImage.setImageResource(0) // Clear previous image
+            holder.albumImage.setBackgroundColor(android.graphics.Color.DKGRAY)
         }
-                ?: run {
-                    holder.albumImage.setBackgroundColor(android.graphics.Color.DKGRAY)
-                }
 
         // Highlight currently playing row
         val isCurrent = position == currentIndex

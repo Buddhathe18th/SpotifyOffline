@@ -1,34 +1,33 @@
 package com.buddhathe18th.spotifyoffline.main
 
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.TextView
-import androidx.recyclerview.widget.RecyclerView
-import com.buddhathe18th.spotifyoffline.R
-import com.buddhathe18th.spotifyoffline.common.data.database.SongWithArtists
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+import com.buddhathe18th.spotifyoffline.R
+import com.buddhathe18th.spotifyoffline.common.models.Song
+import com.buddhathe18th.spotifyoffline.common.data.database.SongWithArtists
 import android.util.Log
-import android.widget.ImageView 
 
-class SongWithArtistsAdapter(
-        private var songs: List<SongWithArtists>,
-        private val onClick: (SongWithArtists) -> Unit
-) : RecyclerView.Adapter<SongWithArtistsAdapter.SongViewHolder>() {
+class SongAdapter(private var songs: List<SongWithArtists>, private val onClick: (SongWithArtists) -> Unit) :
+        RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
     inner class SongViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textTitle: TextView = itemView.findViewById(R.id.songTitle)
         val textArtist: TextView = itemView.findViewById(R.id.songArtist)
-         val albumArt: ImageView = itemView.findViewById(R.id.songAlbumArt)
+        val albumArt: ImageView = itemView.findViewById(R.id.songAlbumArt)
 
-        fun bind(songWithArtists: SongWithArtists) {
-            textTitle.text = songWithArtists.song.title
-            textArtist.text = songWithArtists.artistNames // Uses the helper property!
+        fun bind(song: SongWithArtists) {
+            textTitle.text = song.song.title
+            textArtist.text = song.artistNames
 
             val albumArtBytes =
-                    getEmbeddedAlbumArt(albumArt.context, Uri.parse(songWithArtists.song.uri))
+                    getEmbeddedAlbumArt(albumArt.context, Uri.parse(song.song.uri))
             if (albumArtBytes != null) {
                 val bitmap = BitmapFactory.decodeByteArray(albumArtBytes, 0, albumArtBytes.size)
                 albumArt.setImageBitmap(bitmap)
@@ -36,9 +35,14 @@ class SongWithArtistsAdapter(
                 albumArt.setImageResource(0) // Clear previous image
                 albumArt.setBackgroundColor(android.graphics.Color.DKGRAY)
             }
-
-            itemView.setOnClickListener { onClick(songWithArtists) }
+            // Set click listener on the whole item
+            itemView.setOnClickListener { onClick(song) }
         }
+    }
+
+    fun updateSongs(newSongs: List<SongWithArtists>) {
+        songs = newSongs
+        notifyDataSetChanged()
     }
 
     private fun getEmbeddedAlbumArt(context: android.content.Context, uri: Uri): ByteArray? {
@@ -64,10 +68,4 @@ class SongWithArtistsAdapter(
     }
 
     override fun getItemCount(): Int = songs.size
-
-    // Important: Method to update the list when database changes
-    fun updateSongs(newSongs: List<SongWithArtists>) {
-        songs = newSongs
-        notifyDataSetChanged()
-    }
 }

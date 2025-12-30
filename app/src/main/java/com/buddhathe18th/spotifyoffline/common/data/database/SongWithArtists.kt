@@ -16,7 +16,8 @@ data class SongWithArtists(
         )
     )
     val artists: List<ArtistEntity>
+    
 ) {
     val artistNames: String
-        get() = artists.joinToString(", ") { it.name }
+        get() = artists.joinToString(", ") { it.name }        
 }
