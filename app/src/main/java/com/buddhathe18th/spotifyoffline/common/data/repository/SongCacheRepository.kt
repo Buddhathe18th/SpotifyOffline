@@ -1,7 +1,7 @@
 package com.buddhathe18th.spotifyoffline.common.data.repository
 
-import android.content.Context
 import android.content.ContentUris
+import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
 import com.buddhathe18th.spotifyoffline.common.data.AppDatabase
@@ -26,8 +26,15 @@ class SongCacheRepository(context: Context) {
                                         MediaStore.Audio.Media.ARTIST,
                                         MediaStore.Audio.Media.ALBUM,
                                         MediaStore.Audio.Media.DURATION,
-                                        MediaStore.Audio.Media.DATE_ADDED
+                                        MediaStore.Audio.Media.DATE_ADDED,
+                                        MediaStore.Audio.Media.DATA
                                 )
+
+                        // val selection =
+                        val selection =
+                                "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND " +
+                                        "${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?"
+                        val selectionArgs = arrayOf("%Music/SpotifyOffline%")
 
                         val songs = mutableListOf<SongEntity>()
                         val artists = mutableSetOf<ArtistEntity>()
@@ -36,9 +43,9 @@ class SongCacheRepository(context: Context) {
                         context.contentResolver.query(
                                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                                         projection,
-                                        null,
-                                        null,
-                                        "${MediaStore.Audio.Media.TITLE} ASC"
+                                        selection,
+                                        selectionArgs,
+                                        null
                                 )
                                 ?.use { cursor ->
                                         val idCol =

@@ -10,17 +10,18 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.buddhathe18th.spotifyoffline.common.models.Song
+import com.buddhathe18th.spotifyoffline.common.data.database.SongWithArtists
 import com.buddhathe18th.spotifyoffline.R
 
 
 class QueueAdapter(
-    private val songs: MutableList<Song>,
+    private val songs: MutableList<SongWithArtists>,
     private var currentIndex: Int,
     private val onTap: (index: Int) -> Unit,
     private val onRemove: (index: Int) -> Unit
 ) : RecyclerView.Adapter<QueueAdapter.VH>() {
 
-    fun setData(newSongs: List<Song>, newCurrentIndex: Int) {
+    fun setData(newSongs: List<SongWithArtists>, newCurrentIndex: Int) {
         songs.clear()
         songs.addAll(newSongs)
         currentIndex = newCurrentIndex
@@ -35,7 +36,7 @@ class QueueAdapter(
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         val song = songs[position]
-        holder.textTitle.text = "${song.title} - ${song.artist}"
+        holder.textTitle.text = "${song.song.title} - ${song.artistNames}"
 
         // Highlight currently playing row
         val isCurrent = position == currentIndex
