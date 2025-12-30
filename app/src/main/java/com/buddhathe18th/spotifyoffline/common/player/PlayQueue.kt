@@ -1,7 +1,8 @@
 package com.buddhathe18th.spotifyoffline.common.player
 
 
-import com.buddhathe18th.spotifyoffline.common.models.Song 
+import com.buddhathe18th.spotifyoffline.common.models.Song
+import com.buddhathe18th.spotifyoffline.common.data.database.SongWithArtists 
 
 /** Manages the current play session with queue operations, shuffle, and repeat modes. */
 class PlayQueue {
@@ -14,13 +15,13 @@ class PlayQueue {
     }
 
     // State tracking
-    private val queue: MutableList<Song> = mutableListOf()
+    private val queue: MutableList<SongWithArtists> = mutableListOf()
     private var currentIndex: Int = 0
     private var shuffleEnabled: Boolean = false
     private var repeatMode: RepeatMode = RepeatMode.NONE
 
     // Store original order for shuffle/unshuffle
-    private var originalQueue: List<Song> = emptyList()
+    private var originalQueue: List<SongWithArtists> = emptyList()
     private var originalIndex: Int = 0
 
     /**
@@ -28,7 +29,7 @@ class PlayQueue {
      * @param songs The new list of songs
      * @param startIndex The index to start playing from (default: 0)
      */
-    fun setQueue(songs: List<Song>, startIndex: Int = 0) {
+    fun setQueue(songs: List<SongWithArtists>, startIndex: Int = 0) {
         queue.clear()
         queue.addAll(songs)
         currentIndex = startIndex.coerceIn(0, maxOf(0, queue.size - 1))
@@ -41,7 +42,7 @@ class PlayQueue {
      * Append a song to the end of the queue.
      * @param song The song to add
      */
-    fun addToQueue(song: Song) {
+    fun addToQueue(song: SongWithArtists) {
         queue.add(song)
         if (shuffleEnabled) {
             originalQueue = originalQueue + song
@@ -53,7 +54,7 @@ class PlayQueue {
      * @param song The song to add
      * @param index The index to insert the song at
      */
-    fun addToQueue(index: Int, song: Song) {
+    fun addToQueue(index: Int, song: SongWithArtists) {
         queue.add(index, song)
         originalQueue = originalQueue + song
     }
@@ -62,7 +63,7 @@ class PlayQueue {
      * Get the currently playing song.
      * @return The current song, or null if queue is empty
      */
-    fun getCurrentSong(): Song? {
+    fun getCurrentSong(): SongWithArtists? {
         return if (queue.isNotEmpty() && currentIndex in queue.indices) {
             queue[currentIndex]
         } else {
@@ -88,7 +89,7 @@ class PlayQueue {
      * Move to the next song respecting repeat and shuffle modes.
      * @return The next song, or null if no next song available
      */
-    fun next(): Song? {
+    fun next(): SongWithArtists? {
         if (queue.isEmpty()) return null
 
         when (repeatMode) {
@@ -130,7 +131,7 @@ class PlayQueue {
      * Move to the previous song.
      * @return The previous song, or null if no previous song available
      */
-    fun previous(): Song? {
+    fun previous(): SongWithArtists? {
         if (queue.isEmpty()) return null
 
         when (repeatMode) {
@@ -285,7 +286,7 @@ class PlayQueue {
      * Get a copy of the current queue.
      * @return A list copy of the current queue
      */
-    fun getQueue(): List<Song> = queue.toList()
+    fun getQueue(): List<SongWithArtists> = queue.toList()
 
     /** Clear the entire queue. */
     fun clear() {

@@ -33,7 +33,7 @@ class QueueActivity : BaseActivity() {
                         onTap = { index ->
                             Log.d(
                                     "QueueActivity",
-                                    "Jumping to index: ${index} song ${playQueue.getQueue()[index].title}"
+                                    "Jumping to index: ${index} song ${playQueue.getQueue()[index].song.title}"
                             )
                             setResult(
                                     Activity.RESULT_OK,
