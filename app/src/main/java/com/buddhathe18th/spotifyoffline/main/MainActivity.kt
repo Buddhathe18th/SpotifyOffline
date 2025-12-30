@@ -84,15 +84,6 @@ class MainActivity : BaseActivity() {
                 SongWithArtistsAdapter(emptyList()) { songWithArtists ->
                     Log.d("MainActivity", "Clicked: ${songWithArtists.song.title}")
 
-                    // Convert to Song model for playback
-                    // val song = Song(
-                    //     title = songWithArtists.song.title,
-                    //     artist = songWithArtists.artistNames,
-                    //     artists = songWithArtists.artists.map { it.name },
-                    //     uri = Uri.parse(songWithArtists.song.uri),
-                    //     durationMs = songWithArtists.song.durationMs
-                    // )
-
                     // Handle playback logic
                     val currentQueue = playQueue.getQueue()
                     if (songWithArtists == playQueue.getCurrentSong()) {
@@ -320,7 +311,7 @@ class MainActivity : BaseActivity() {
                     val albumArtBytes = getEmbeddedAlbumArt(Uri.parse(song.song.uri))
                     runOnUiThread {
                         textTitle.text = "${song.song.title}"
-                        textArtist.text = "${song.artists.joinToString(", ")}"
+                        textArtist.text = "${song.artistNames}"
                         if (albumArtBytes != null) {
                             val bitmap =
                                     BitmapFactory.decodeByteArray(

@@ -53,7 +53,7 @@ class QueueAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) {
         val song = songs[position]
         holder.textTitle.text = "${song.song.title}"
-        holder.textArtist.text = "${song.artists.joinToString(", ")}"
+        holder.textArtist.text = "${song.artistNames}"
 
         val albumArtBytes = getEmbeddedAlbumArt(holder.itemView.context, Uri.parse(song.song.uri))
         if (albumArtBytes != null) {
