@@ -21,6 +21,7 @@ class PlaylistViewerActivity : ComponentActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: SongWithArtistsAdapter
     
+    
     private val db by lazy { AppDatabase.getDatabase(this) }
     private var allPlaylists: List<PlaylistWithSongCount> = emptyList()
     private var currentPlaylistId: String? = null
@@ -33,10 +34,23 @@ class PlaylistViewerActivity : ComponentActivity() {
         spinnerPlaylists = findViewById(R.id.spinnerPlaylists)
         textPlaylistInfo = findViewById(R.id.textPlaylistInfo)
         recyclerView = findViewById(R.id.recyclerPlaylistSongs)
+
+        val buttonBack: Button = findViewById<Button>(R.id.buttonBack)
+        val buttonDeletePlaylist: Button = findViewById<Button>(R.id.buttonDeletePlaylist)
         
         // Back button
-        findViewById<Button>(R.id.buttonBack).setOnClickListener {
+        buttonBack.setOnClickListener {
             finish()
+        }
+
+        buttonDeletePlaylist.setOnClickListener {
+            currentPlaylistId?.let { playlistId ->
+                lifecycleScope.launch {
+                    db.playlistDao().deletePlaylistById(playlistId)
+                    Log.d("PlaylistViewer", "Deleted playlist with ID: $playlistId")
+                    loadPlaylists()
+                }
+            }
         }
 
         // Setup RecyclerView

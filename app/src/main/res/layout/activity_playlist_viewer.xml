@@ -5,12 +5,26 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Back button -->
-    <Button
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <Button
         android:id="@+id/buttonBack"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="← Back to Main" />
+
+        <Button 
+        android:id="@+id/buttonDeletePlaylist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Delete Playlist"
+        />
+    </LinearLayout>
+    
 
     <!-- Playlist selector -->
     <TextView
