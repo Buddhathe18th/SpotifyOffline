@@ -1,4 +1,4 @@
-package com.buddhathe18th.spotifyoffline
+package com.buddhathe18th.spotifyoffline.common.data.repository
 
 import android.content.Context
 import com.buddhathe18th.spotifyoffline.common.data.AppDatabase

@@ -31,9 +31,9 @@ import com.buddhathe18th.spotifyoffline.common.data.repository.SongCacheReposito
 import com.buddhathe18th.spotifyoffline.common.player.MusicPlayerManager
 import com.buddhathe18th.spotifyoffline.common.player.PlayQueue
 import com.buddhathe18th.spotifyoffline.common.player.QueueManager
-import com.buddhathe18th.spotifyoffline.playlists.PlaylistViewerActivity
+import com.buddhathe18th.spotifyoffline.playlists.PlaylistActivity
 import com.buddhathe18th.spotifyoffline.queue.QueueActivity
-import com.buddhathe18th.spotifyoffline.PlaylistRepository
+import com.buddhathe18th.spotifyoffline.common.data.repository.PlaylistRepository
 import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity() {
@@ -202,7 +202,7 @@ class MainActivity : BaseActivity() {
         }
 
         buttonViewPlaylists.setOnClickListener {
-            startActivity(Intent(this, PlaylistViewerActivity::class.java))
+            startActivity(Intent(this, PlaylistActivity::class.java))
         }
 
         buttonViewQueue.setOnClickListener {
