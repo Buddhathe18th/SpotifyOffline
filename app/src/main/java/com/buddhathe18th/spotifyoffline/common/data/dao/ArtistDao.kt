@@ -16,6 +16,13 @@ interface ArtistDao {
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertArtists(artists: List<ArtistEntity>)
+
+    @Query("""
+        SELECT * FROM artists 
+        WHERE name_normalized LIKE '%' || :query || '%'
+        ORDER BY name ASC
+    """)
+    fun searchArtistsByName(query: String): Flow<List<ArtistEntity>>
     
     @Query("DELETE FROM artists")
     suspend fun deleteAll()
