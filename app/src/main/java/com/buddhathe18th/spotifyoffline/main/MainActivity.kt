@@ -153,7 +153,7 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        playlistTest()
+        // playlistTest()
     }
 
     private val audioPermission: String

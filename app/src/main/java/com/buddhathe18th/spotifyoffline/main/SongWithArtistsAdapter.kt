@@ -70,4 +70,8 @@ class SongWithArtistsAdapter(
         songs = newSongs
         notifyDataSetChanged()
     }
+
+    fun getCurrentSongs(): List<SongWithArtists> {
+        return songs
+    }
 }
