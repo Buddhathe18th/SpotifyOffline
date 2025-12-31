@@ -46,12 +46,12 @@
         android:layout_height="0dp"
         android:background="@android:color/white"
         app:layout_constraintTop_toBottomOf="@id/topBar"
-        app:layout_constraintBottom_toTopOf="@id/bottomBar"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
 
-    <LinearLayout
+    <!-- <LinearLayout
         android:id="@+id/bottomBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -62,7 +62,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Progress bar -->
         <SeekBar
             android:id="@+id/seekBarProgress"
             android:layout_width="match_parent"
@@ -74,7 +73,6 @@
             android:clickable="false"
             android:focusable="false" />
 
-        <!-- Time labels -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -99,7 +97,6 @@
                 android:textColor="?android:attr/textColorSecondary" />
         </LinearLayout>
 
-        <!-- Song title and scan button row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -107,7 +104,6 @@
             android:gravity="center_vertical"
             android:paddingBottom="8dp">
 
-            <!-- Album art placeholder -->
             <ImageView
                 android:id="@+id/imageAlbumArt"
                 android:layout_width="64dp"
@@ -117,7 +113,6 @@
                 android:background="@android:color/darker_gray"
                 android:contentDescription="Album art" />
 
-            <!-- Title and artist stacked vertically -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -153,7 +148,6 @@
         </LinearLayout>
 
 
-        <!-- Playback controls -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -161,7 +155,6 @@
             android:gravity="center"
             android:paddingTop="4dp">
 
-            <!-- Shuffle button -->
             <ImageButton
                 android:id="@+id/buttonShuffle"
                 android:layout_width="40dp"
@@ -172,7 +165,6 @@
                 android:contentDescription="Shuffle"
                 android:alpha="0.5" />
 
-            <!-- Previous button -->
             <ImageButton
                 android:id="@+id/buttonPrevious"
                 android:layout_width="40dp"
@@ -185,7 +177,6 @@
                 android:enabled="false"
                 android:alpha="0.5" />
 
-            <!-- Play/Pause button (larger) -->
             <ImageButton
                 android:id="@+id/buttonPlayPause"
                 android:layout_width="48dp"
@@ -198,7 +189,6 @@
                 android:contentDescription="Play/Pause"
                 android:enabled="false" />
 
-            <!-- Next button -->
             <ImageButton
                 android:id="@+id/buttonNext"
                 android:layout_width="40dp"
@@ -211,7 +201,6 @@
                 android:enabled="false"
                 android:alpha="0.5" />
 
-            <!-- Repeat button -->
             <ImageButton
                 android:id="@+id/buttonRepeat"
                 android:layout_width="40dp"
@@ -223,7 +212,7 @@
                 android:alpha="0.5" />
         </LinearLayout>
 
-    </LinearLayout>
+    </LinearLayout> -->
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

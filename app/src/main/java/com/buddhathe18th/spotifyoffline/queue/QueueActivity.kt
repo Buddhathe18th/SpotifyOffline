@@ -14,10 +14,7 @@ import com.buddhathe18th.spotifyoffline.common.player.QueueManager
 
 class QueueActivity : BaseActivity() {
 
-    private val playQueue = QueueManager.playQueue
     private lateinit var adapter: QueueAdapter
-    private val musicPlayer = MusicPlayerManager.musicPlayer
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_queue)

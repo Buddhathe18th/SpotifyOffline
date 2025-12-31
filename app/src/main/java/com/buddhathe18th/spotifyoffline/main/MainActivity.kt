@@ -4,19 +4,11 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
-import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.widget.Button
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.SeekBar
-import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
@@ -27,24 +19,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.buddhathe18th.spotifyoffline.R
 import com.buddhathe18th.spotifyoffline.common.BaseActivity
 import com.buddhathe18th.spotifyoffline.common.data.AppDatabase
+import com.buddhathe18th.spotifyoffline.common.data.repository.PlaylistRepository
 import com.buddhathe18th.spotifyoffline.common.data.repository.SongCacheRepository
-import com.buddhathe18th.spotifyoffline.common.player.MusicPlayerManager
-import com.buddhathe18th.spotifyoffline.common.player.PlayQueue
-import com.buddhathe18th.spotifyoffline.common.player.QueueManager
 import com.buddhathe18th.spotifyoffline.playlists.PlaylistActivity
 import com.buddhathe18th.spotifyoffline.queue.QueueActivity
-import com.buddhathe18th.spotifyoffline.common.data.repository.PlaylistRepository
 import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity() {
 
-    private val musicPlayer = MusicPlayerManager.musicPlayer
-    private val playQueue = QueueManager.playQueue
-
-    private val handler = Handler(Looper.getMainLooper())
-    private var isUpdatingProgress = false
-
-    // Keep reference to adapter
     private lateinit var songAdapter: SongWithArtistsAdapter
 
     private val queueLauncher =
@@ -54,28 +36,19 @@ class MainActivity : BaseActivity() {
                             result.data?.getBooleanExtra(QueueActivity.EXTRA_PLAY_CURRENT, false)
                                     ?: false
 
-                    // Handle play current FIRST
                     if (playCurrent) {
                         Log.d("MainActivity", "Playing song at current index after removal")
                         if (playQueue.getCurrentSong() != null) {
                             playSongAtCurrentIndex()
                         } else {
-                            // Queue is empty, stop playback
                             Log.d("MainActivity", "Queue empty after removal, stopping playback")
                             musicPlayer.stopAndRelease()
-                            findViewById<TextView>(R.id.nowPlayingTitle).text = "Nothing playing"
-                            findViewById<TextView>(R.id.nowPlayingArtist).text = ""
-                            findViewById<ImageButton>(R.id.buttonPlayPause).apply {
-                                setImageResource(android.R.drawable.ic_media_play)
-                                isEnabled = false
-                            }
+                            updatePlayerUI()
                             stopProgressUpdates()
-                            updateNavigationButtons()
                         }
                         return@registerForActivityResult
                     }
 
-                    // Handle jump index only if playCurrent wasn't set
                     val jumpIndex =
                             result.data?.getIntExtra(QueueActivity.EXTRA_JUMP_INDEX, -1) ?: -1
                     if (jumpIndex >= 0) {
@@ -93,26 +66,15 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val buttonPlayPause = findViewById<ImageButton>(R.id.buttonPlayPause)
-        val buttonNext = findViewById<ImageButton>(R.id.buttonNext)
-        val buttonPrevious = findViewById<ImageButton>(R.id.buttonPrevious)
-        val buttonShuffle = findViewById<ImageButton>(R.id.buttonShuffle)
-        val buttonRepeat = findViewById<ImageButton>(R.id.buttonRepeat)
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerSongs)
         val scanButton = findViewById<Button>(R.id.buttonScan)
-        val buttonViewQueue = findViewById<Button>(R.id.buttonViewQueue)
         val buttonViewPlaylists = findViewById<Button>(R.id.buttonViewPlaylists)
-
-        buttonPlayPause.isEnabled = false
-        buttonNext.isEnabled = false
-        buttonPrevious.isEnabled = false
 
         // Initialize adapter with empty list and click handler
         songAdapter =
                 SongWithArtistsAdapter(emptyList()) { songWithArtists ->
                     Log.d("MainActivity", "Clicked: ${songWithArtists.song.title}")
 
-                    // Handle playback logic
                     val currentQueue = playQueue.getQueue()
                     if (songWithArtists == playQueue.getCurrentSong()) {
                         Log.d(
@@ -150,36 +112,11 @@ class MainActivity : BaseActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = songAdapter
 
-        buttonPlayPause.setOnClickListener {
-            if (musicPlayer.isPlaying()) {
-                musicPlayer.pause()
-                buttonPlayPause.setImageResource(android.R.drawable.ic_media_play)
-                stopProgressUpdates()
-                Log.d("MainActivity", "Paused playback")
-            } else {
-                musicPlayer.resume()
-                buttonPlayPause.setImageResource(android.R.drawable.ic_media_pause)
-                startProgressUpdates()
-                Log.d("MainActivity", "Resumed playback")
-            }
+        // buttonViewQueue is now in BaseActivity
+        buttonViewQueue.setOnClickListener {
+            queueLauncher.launch(Intent(this, QueueActivity::class.java))
         }
 
-        buttonNext.setOnClickListener { playNextSong() }
-        buttonPrevious.setOnClickListener { playPreviousSong() }
-
-        buttonShuffle.setOnClickListener {
-            playQueue.toggleShuffle()
-            updateShuffleButton(buttonShuffle)
-            Log.d("MainActivity", "Shuffle: ${playQueue.isShuffleEnabled()}")
-        }
-
-        buttonRepeat.setOnClickListener {
-            playQueue.toggleRepeatMode()
-            updateRepeatButton(buttonRepeat)
-            Log.d("MainActivity", "Repeat mode: ${playQueue.getRepeatMode()}")
-        }
-
-        // Scan button - sync and display
         scanButton.setOnClickListener {
             Log.d("MainActivity", "Scan button clicked")
 
@@ -188,13 +125,6 @@ class MainActivity : BaseActivity() {
                 try {
                     repository.syncFromMediaStore(this@MainActivity)
                     Log.d("MainActivity", "Scan complete!")
-
-                    // After sync, display songs automatically via collect
-                    // val db = AppDatabase.getDatabase(this@MainActivity)
-                    // db.songDao().getAllSongsWithArtists().collect { songs ->
-                    //     Log.d("MainActivity", "Loaded ${songs.size} songs")
-                    //     songAdapter.updateSongs(songs) // Update UI!
-                    // }
                 } catch (e: Exception) {
                     Log.e("MainActivity", "Scan failed", e)
                 }
@@ -205,18 +135,12 @@ class MainActivity : BaseActivity() {
             startActivity(Intent(this, PlaylistActivity::class.java))
         }
 
-        buttonViewQueue.setOnClickListener {
-            queueLauncher.launch(Intent(this, QueueActivity::class.java))
-        }
-
-        // On permission granted, just load existing songs from database
         ensureAudioPermission {
             Log.d("MainActivity", "Permission granted, loading songs from database...")
 
             lifecycleScope.launch {
                 try {
                     val db = AppDatabase.getDatabase(this@MainActivity)
-                    // Use launchWhenStarted to avoid blocking
                     lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                         db.songDao().getAllSongsWithArtists().collect { songs ->
                             Log.d("MainActivity", "Loaded ${songs.size} songs from database")
@@ -232,7 +156,6 @@ class MainActivity : BaseActivity() {
         playlistTest()
     }
 
-    // Pick correct permission for the SDK version
     private val audioPermission: String
         get() =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -270,76 +193,44 @@ class MainActivity : BaseActivity() {
     override fun onDestroy() {
         super.onDestroy()
         musicPlayer.stopAndRelease()
-        stopProgressUpdates()
         Log.d("MainActivity", "Activity destroyed, released player")
     }
-    private var isUserDragging = false
 
-    private val updateProgressRunnable =
-            object : Runnable {
-                override fun run() {
-                    if (musicPlayer.isPlaying()) {
-                        val currentPos = musicPlayer.getCurrentPosition()
-                        val duration = musicPlayer.getDuration()
+    override fun playSongAtCurrentIndex() {
+        val song = playQueue.getCurrentSong() ?: return
 
-                        if (duration > 0) {
-                            val seekBar = findViewById<SeekBar>(R.id.seekBarProgress)
-                            val textCurrent = findViewById<TextView>(R.id.textCurrentTime)
-                            val textTotal = findViewById<TextView>(R.id.textTotalTime)
-
-                            seekBar.setOnSeekBarChangeListener(
-                                    object : SeekBar.OnSeekBarChangeListener {
-                                        override fun onProgressChanged(
-                                                seekBar: SeekBar?,
-                                                progress: Int,
-                                                fromUser: Boolean
-                                        ) {}
-
-                                        override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                                            isUserDragging = true
-                                        }
-
-                                        override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                                            isUserDragging = false
-                                            seekBar?.let { musicPlayer.seekTo(it.progress) }
-                                        }
-                                    }
-                            )
-
-                            seekBar.max = duration
-                            if (!isUserDragging) {
-                                seekBar.progress = currentPos
-                            }
-
-                            textCurrent.text = formatTime(currentPos)
-                            textTotal.text = formatTime(duration)
+        musicPlayer.play(
+                context = this,
+                uri = Uri.parse(song.song.uri),
+                onPrepared = {
+                    Log.d("MainActivity", "Playback started for ${song.song.title}")
+                    runOnUiThread {
+                        updatePlayerUI()
+                        startProgressUpdates()
+                    }
+                },
+                onCompletion = {
+                    Log.d("MainActivity", "Playback completed for ${song.song.title}")
+                    runOnUiThread {
+                        if (playQueue.hasNext()) {
+                            playNextSong()
+                        } else {
+                            updatePlayerUI()
+                            stopProgressUpdates()
                         }
                     }
-
-                    if (isUpdatingProgress) {
-                        handler.postDelayed(this, 1000)
-                    }
                 }
-            }
-
-    private fun formatTime(millis: Int): String {
-        val seconds = (millis / 1000) % 60
-        val minutes = (millis / 1000) / 60
-        return String.format("%d:%02d", minutes, seconds)
+        )
     }
 
     private fun playlistTest() {
-        // In MainActivity.onCreate(), after sync completes:
         lifecycleScope.launch {
             val repo = PlaylistRepository(this@MainActivity)
 
-            // Check if playlists exist
             repo.getAllPlaylists().collect { playlists ->
                 if (playlists.isEmpty()) {
-                    // Create test playlist
                     val playlist = repo.createPlaylist("My Favorites")
 
-                    // Add first 3 songs to it
                     val db = AppDatabase.getDatabase(this@MainActivity)
                     db.songDao().getAllSongsWithArtists().collect { songs ->
                         songs.take(3).forEach { song ->
@@ -351,134 +242,12 @@ class MainActivity : BaseActivity() {
                 }
                 val playlist = repo.createPlaylist("aaaaa")
                 val db = AppDatabase.getDatabase(this@MainActivity)
-                    db.songDao().getAllSongsWithArtists().collect { songs ->
-                        songs.take(30).forEach { song ->
-                            repo.addSongToPlaylist(playlist.id, song.song.id)
-                        }
-                    }
-            }
-        }
-    }
-
-    private fun startProgressUpdates() {
-        isUpdatingProgress = true
-        handler.post(updateProgressRunnable)
-    }
-
-    private fun stopProgressUpdates() {
-        isUpdatingProgress = false
-        handler.removeCallbacks(updateProgressRunnable)
-    }
-
-    private fun playSongAtCurrentIndex() {
-        val song = playQueue.getCurrentSong() ?: return
-
-        val textTitle = findViewById<TextView>(R.id.nowPlayingTitle)
-        val textArtist = findViewById<TextView>(R.id.nowPlayingArtist)
-        val buttonPlayPause = findViewById<ImageButton>(R.id.buttonPlayPause)
-        val imageAlbumArt = findViewById<ImageView>(R.id.imageAlbumArt)
-
-        musicPlayer.play(
-                context = this,
-                uri = Uri.parse(song.song.uri),
-                onPrepared = {
-                    Log.d("MainActivity", "Playback started for ${song.song.title}")
-                    val albumArtBytes = getEmbeddedAlbumArt(Uri.parse(song.song.uri))
-                    runOnUiThread {
-                        textTitle.text = "${song.song.title}"
-                        textArtist.text = "${song.artistNames}"
-                        if (albumArtBytes != null) {
-                            val bitmap =
-                                    BitmapFactory.decodeByteArray(
-                                            albumArtBytes,
-                                            0,
-                                            albumArtBytes.size
-                                    )
-                            imageAlbumArt.setImageBitmap(bitmap)
-                        } else {
-                            imageAlbumArt.setImageResource(0) // Clear previous image
-                            imageAlbumArt.setBackgroundColor(android.graphics.Color.DKGRAY)
-                        }
-
-                        buttonPlayPause.setImageResource(android.R.drawable.ic_media_pause)
-                        buttonPlayPause.isEnabled = true
-                        updateNavigationButtons()
-                        startProgressUpdates()
-                    }
-                },
-                onCompletion = {
-                    Log.d("MainActivity", "Playback completed for ${song.song.title}")
-                    runOnUiThread {
-                        if (playQueue.hasNext()) {
-                            playNextSong()
-                        } else {
-                            textTitle.text = "Nothing playing"
-                            textArtist.text = ""
-                            buttonPlayPause.setImageResource(android.R.drawable.ic_media_play)
-                            buttonPlayPause.isEnabled = false
-                            stopProgressUpdates()
-                            updateNavigationButtons()
-                        }
+                db.songDao().getAllSongsWithArtists().collect { songs ->
+                    songs.take(30).forEach { song ->
+                        repo.addSongToPlaylist(playlist.id, song.song.id)
                     }
                 }
-        )
-    }
-
-    private fun getEmbeddedAlbumArt(uri: Uri): ByteArray? {
-        val retriever = MediaMetadataRetriever()
-        return try {
-            retriever.setDataSource(this, uri)
-            retriever.embeddedPicture // Returns ByteArray or null
-        } catch (e: Exception) {
-            Log.e("MainActivity", "Could not read album art for $uri", e)
-            null
-        } finally {
-            retriever.release()
-        }
-    }
-
-    private fun playNextSong() {
-        val nextSong = playQueue.next()
-        if (nextSong != null) {
-            Log.d("MainActivity", "Playing next: ${nextSong.song.title}")
-            playSongAtCurrentIndex()
-        } else {
-            Log.d("MainActivity", "No next song available")
-            updateNavigationButtons()
-        }
-    }
-
-    private fun playPreviousSong() {
-        val previousSong = playQueue.previous()
-        if (previousSong != null) {
-            Log.d("MainActivity", "Playing previous: ${previousSong.song.title}")
-            playSongAtCurrentIndex()
-        } else {
-            Log.d("MainActivity", "No previous song available")
-            updateNavigationButtons()
-        }
-    }
-
-    private fun updateNavigationButtons() {
-        val buttonNext = findViewById<ImageButton>(R.id.buttonNext)
-        val buttonPrevious = findViewById<ImageButton>(R.id.buttonPrevious)
-
-        buttonNext.isEnabled = playQueue.hasNext()
-        buttonPrevious.isEnabled = playQueue.hasPrevious()
-
-        buttonNext.alpha = if (playQueue.hasNext()) 1.0f else 0.5f
-        buttonPrevious.alpha = if (playQueue.hasPrevious()) 1.0f else 0.5f
-    }
-
-    private fun updateShuffleButton(button: ImageButton) {
-        button.alpha = if (playQueue.isShuffleEnabled()) 1.0f else 0.5f
-    }
-
-    private fun updateRepeatButton(button: ImageButton) {
-        when (playQueue.getRepeatMode()) {
-            PlayQueue.RepeatMode.NONE -> button.alpha = 0.5f
-            PlayQueue.RepeatMode.ALL -> button.alpha = 1.0f
-            PlayQueue.RepeatMode.ONE -> button.alpha = 1.0f
+            }
         }
     }
 }
