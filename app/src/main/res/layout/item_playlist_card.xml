@@ -18,10 +18,10 @@
         <ImageView
             android:id="@+id/imagePlaylistCover"
             android:layout_width="match_parent"
-            android:layout_height="160dp"
+            android:layout_height="80dp"
+            android:background="#FF6B9D"
             android:scaleType="centerCrop"
-            android:src="@android:drawable/ic_menu_gallery"
-            android:background="#FF6B9D" />
+            android:src="@android:drawable/ic_menu_gallery" />
 
         <!-- Playlist Info -->
         <LinearLayout

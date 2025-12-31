@@ -19,6 +19,7 @@ import com.buddhathe18th.spotifyoffline.common.data.database.PlaylistWithSongCou
 import com.buddhathe18th.spotifyoffline.common.data.repository.PlaylistRepository
 import com.buddhathe18th.spotifyoffline.common.BaseActivity
 import kotlinx.coroutines.launch
+import androidx.recyclerview.widget.LinearLayoutManager
 
 class PlaylistActivity : BaseActivity() {
 
@@ -35,8 +36,7 @@ class PlaylistActivity : BaseActivity() {
         recyclerView = findViewById(R.id.recyclerPlaylists)
         emptyState = findViewById(R.id.layoutEmptyState)
 
-        // Setup grid layout (2 columns)
-        recyclerView.layoutManager = GridLayoutManager(this, 2)
+        recyclerView.layoutManager = LinearLayoutManager(this)
 
         // Setup adapter
         adapter = PlaylistAdapter(emptyList()) { playlist -> openPlaylistDetails(playlist) }
