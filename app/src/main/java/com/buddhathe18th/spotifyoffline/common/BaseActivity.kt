@@ -23,6 +23,10 @@ import com.buddhathe18th.spotifyoffline.R
 import com.buddhathe18th.spotifyoffline.common.player.MusicPlayerManager
 import com.buddhathe18th.spotifyoffline.common.player.PlayQueue
 import com.buddhathe18th.spotifyoffline.common.player.QueueManager
+import androidx.activity.result.contract.ActivityResultContracts
+import android.app.Activity
+import com.buddhathe18th.spotifyoffline.queue.QueueActivity
+import android.content.Intent
 
 open class BaseActivity : ComponentActivity() {
 
@@ -83,6 +87,48 @@ open class BaseActivity : ComponentActivity() {
         setupPlayerControls()
     }
 
+    private val queueLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val playCurrent =
+                            result.data?.getBooleanExtra(QueueActivity.EXTRA_PLAY_CURRENT, false)
+                                    ?: false
+
+                    // Handle play current FIRST
+                    if (playCurrent) {
+                        Log.d("MainActivity", "Playing song at current index after removal")
+                        if (playQueue.getCurrentSong() != null) {
+                            playSongAtCurrentIndex()
+                        } else {
+                            // Queue is empty, stop playback
+                            Log.d("MainActivity", "Queue empty after removal, stopping playback")
+                            musicPlayer.stopAndRelease()
+                            findViewById<TextView>(R.id.nowPlayingTitle).text = "Nothing playing"
+                            findViewById<TextView>(R.id.nowPlayingArtist).text = ""
+                            findViewById<ImageButton>(R.id.buttonPlayPause).apply {
+                                setImageResource(android.R.drawable.ic_media_play)
+                                isEnabled = false
+                            }
+                            stopProgressUpdates()
+                            updateNavigationButtons()
+                        }
+                        return@registerForActivityResult
+                    }
+
+                    // Handle jump index only if playCurrent wasn't set
+                    val jumpIndex =
+                            result.data?.getIntExtra(QueueActivity.EXTRA_JUMP_INDEX, -1) ?: -1
+                    if (jumpIndex >= 0) {
+                        Log.d(
+                                "MainActivity",
+                                "Jumping to index from queue: $jumpIndex to song ${playQueue.getQueue()[jumpIndex].song.title}"
+                        )
+                        playQueue.setCurrentIndex(jumpIndex)
+                        playSongAtCurrentIndex()
+                    }
+                }
+            }
+
     private fun setupPlayerControls() {
         buttonPlayPause.setOnClickListener {
             if (musicPlayer.isPlaying()) {
@@ -111,6 +157,12 @@ open class BaseActivity : ComponentActivity() {
             playQueue.toggleRepeatMode()
             updateRepeatButton()
             Log.d("BaseActivity", "Repeat mode: ${playQueue.getRepeatMode()}")
+        }
+
+        buttonViewQueue.setOnClickListener {
+            // Open QueueActivity
+            Log.d("BaseActivity", "Opening QueueActivity")
+            queueLauncher.launch(Intent(this, QueueActivity::class.java))
         }
 
         // SeekBar listener

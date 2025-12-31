@@ -29,38 +29,38 @@ class MainActivity : BaseActivity() {
 
     private lateinit var songAdapter: SongWithArtistsAdapter
 
-    private val queueLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                if (result.resultCode == Activity.RESULT_OK) {
-                    val playCurrent =
-                            result.data?.getBooleanExtra(QueueActivity.EXTRA_PLAY_CURRENT, false)
-                                    ?: false
+    // private val queueLauncher =
+    //         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+    //             if (result.resultCode == Activity.RESULT_OK) {
+    //                 val playCurrent =
+    //                         result.data?.getBooleanExtra(QueueActivity.EXTRA_PLAY_CURRENT, false)
+    //                                 ?: false
 
-                    if (playCurrent) {
-                        Log.d("MainActivity", "Playing song at current index after removal")
-                        if (playQueue.getCurrentSong() != null) {
-                            playSongAtCurrentIndex()
-                        } else {
-                            Log.d("MainActivity", "Queue empty after removal, stopping playback")
-                            musicPlayer.stopAndRelease()
-                            updatePlayerUI()
-                            stopProgressUpdates()
-                        }
-                        return@registerForActivityResult
-                    }
+    //                 if (playCurrent) {
+    //                     Log.d("MainActivity", "Playing song at current index after removal")
+    //                     if (playQueue.getCurrentSong() != null) {
+    //                         playSongAtCurrentIndex()
+    //                     } else {
+    //                         Log.d("MainActivity", "Queue empty after removal, stopping playback")
+    //                         musicPlayer.stopAndRelease()
+    //                         updatePlayerUI()
+    //                         stopProgressUpdates()
+    //                     }
+    //                     return@registerForActivityResult
+    //                 }
 
-                    val jumpIndex =
-                            result.data?.getIntExtra(QueueActivity.EXTRA_JUMP_INDEX, -1) ?: -1
-                    if (jumpIndex >= 0) {
-                        Log.d(
-                                "MainActivity",
-                                "Jumping to index from queue: $jumpIndex to song ${playQueue.getQueue()[jumpIndex].song.title}"
-                        )
-                        playQueue.setCurrentIndex(jumpIndex)
-                        playSongAtCurrentIndex()
-                    }
-                }
-            }
+    //                 val jumpIndex =
+    //                         result.data?.getIntExtra(QueueActivity.EXTRA_JUMP_INDEX, -1) ?: -1
+    //                 if (jumpIndex >= 0) {
+    //                     Log.d(
+    //                             "MainActivity",
+    //                             "Jumping to index from queue: $jumpIndex to song ${playQueue.getQueue()[jumpIndex].song.title}"
+    //                     )
+    //                     playQueue.setCurrentIndex(jumpIndex)
+    //                     playSongAtCurrentIndex()
+    //                 }
+    //             }
+    //         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,9 +113,9 @@ class MainActivity : BaseActivity() {
         recyclerView.adapter = songAdapter
 
         // buttonViewQueue is now in BaseActivity
-        buttonViewQueue.setOnClickListener {
-            queueLauncher.launch(Intent(this, QueueActivity::class.java))
-        }
+        // buttonViewQueue.setOnClickListener {
+        //     queueLauncher.launch(Intent(this, QueueActivity::class.java))
+        // }
 
         scanButton.setOnClickListener {
             Log.d("MainActivity", "Scan button clicked")
