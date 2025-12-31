@@ -14,8 +14,8 @@ import com.buddhathe18th.spotifyoffline.common.models.Song
 import com.buddhathe18th.spotifyoffline.common.data.database.SongWithArtists
 import android.util.Log
 
-class SongAdapter(private var songs: List<SongWithArtists>, private val onClick: (SongWithArtists) -> Unit) :
-        RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
+class SongAdapterOLD(private var songs: List<SongWithArtists>, private val onClick: (SongWithArtists) -> Unit) :
+        RecyclerView.Adapter<SongAdapterOLD.SongViewHolder>() {
 
     inner class SongViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textTitle: TextView = itemView.findViewById(R.id.songTitle)

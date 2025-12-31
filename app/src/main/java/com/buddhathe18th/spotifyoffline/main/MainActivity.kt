@@ -31,7 +31,9 @@ import com.buddhathe18th.spotifyoffline.common.data.repository.SongCacheReposito
 import com.buddhathe18th.spotifyoffline.common.player.MusicPlayerManager
 import com.buddhathe18th.spotifyoffline.common.player.PlayQueue
 import com.buddhathe18th.spotifyoffline.common.player.QueueManager
+import com.buddhathe18th.spotifyoffline.playlists.PlaylistViewerActivity
 import com.buddhathe18th.spotifyoffline.queue.QueueActivity
+import com.buddhathe18th.spotifyoffline.PlaylistRepository
 import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity() {
@@ -99,6 +101,7 @@ class MainActivity : BaseActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerSongs)
         val scanButton = findViewById<Button>(R.id.buttonScan)
         val buttonViewQueue = findViewById<Button>(R.id.buttonViewQueue)
+        val buttonViewPlaylists = findViewById<Button>(R.id.buttonViewPlaylists)
 
         buttonPlayPause.isEnabled = false
         buttonNext.isEnabled = false
@@ -198,6 +201,10 @@ class MainActivity : BaseActivity() {
             }
         }
 
+        buttonViewPlaylists.setOnClickListener {
+            startActivity(Intent(this, PlaylistViewerActivity::class.java))
+        }
+
         buttonViewQueue.setOnClickListener {
             queueLauncher.launch(Intent(this, QueueActivity::class.java))
         }
@@ -221,6 +228,8 @@ class MainActivity : BaseActivity() {
                 }
             }
         }
+
+        playlistTest()
     }
 
     // Pick correct permission for the SDK version
@@ -317,6 +326,38 @@ class MainActivity : BaseActivity() {
         val seconds = (millis / 1000) % 60
         val minutes = (millis / 1000) / 60
         return String.format("%d:%02d", minutes, seconds)
+    }
+
+    private fun playlistTest() {
+        // In MainActivity.onCreate(), after sync completes:
+        lifecycleScope.launch {
+            val repo = PlaylistRepository(this@MainActivity)
+
+            // Check if playlists exist
+            repo.getAllPlaylists().collect { playlists ->
+                if (playlists.isEmpty()) {
+                    // Create test playlist
+                    val playlist = repo.createPlaylist("My Favorites")
+
+                    // Add first 3 songs to it
+                    val db = AppDatabase.getDatabase(this@MainActivity)
+                    db.songDao().getAllSongsWithArtists().collect { songs ->
+                        songs.take(3).forEach { song ->
+                            repo.addSongToPlaylist(playlist.id, song.song.id)
+                        }
+                    }
+
+                    Log.d("MainActivity", "Created test playlist")
+                }
+                val playlist = repo.createPlaylist("aaaaa")
+                val db = AppDatabase.getDatabase(this@MainActivity)
+                    db.songDao().getAllSongsWithArtists().collect { songs ->
+                        songs.take(30).forEach { song ->
+                            repo.addSongToPlaylist(playlist.id, song.song.id)
+                        }
+                    }
+            }
+        }
     }
 
     private fun startProgressUpdates() {

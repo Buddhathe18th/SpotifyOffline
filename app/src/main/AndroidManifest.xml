@@ -29,6 +29,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".queue.QueueActivity" />
+        <activity android:name=".playlists.PlaylistViewerActivity"
+            android:label="Playlists" />
     </application>
 
 </manifest>
