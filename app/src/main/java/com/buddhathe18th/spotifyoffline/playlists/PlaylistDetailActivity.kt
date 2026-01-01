@@ -100,6 +100,20 @@ class PlaylistDetailActivity : BaseActivity() {
             addSongsLauncher.launch(intent)
         }
 
+        findViewById<Button>(R.id.buttonAddSongToPlaylist).setOnClickListener {
+            val intent = Intent(this, SongSelectorActivity::class.java)
+            intent.putExtra("PLAYLIST_ID", playlistId)
+            addSongsLauncher.launch(intent)
+        }
+
+        findViewById<Button>(R.id.buttonDeletePlaylist).setOnClickListener {
+            lifecycleScope.launch {
+                playlistRepo.deletePlaylist(playlistId)
+                Log.d("PlaylistDetailActivity", "Deleted playlist $playlistId")
+                finish()
+            }
+        }
+
         recyclerView = findViewById(R.id.recyclerSongs)
         recyclerView.layoutManager = LinearLayoutManager(this)
 

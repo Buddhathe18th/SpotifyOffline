@@ -37,8 +37,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_input_add"
-            android:contentDescription="Add Playlist" />
+            android:contentDescription="Add Playlist"
+            android:src="@android:drawable/ic_menu_add" />
 
     </LinearLayout>
 
