@@ -1,6 +1,7 @@
 package com.buddhathe18th.spotifyoffline.playlists
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
@@ -11,8 +12,9 @@ import com.buddhathe18th.spotifyoffline.R
 import com.buddhathe18th.spotifyoffline.common.BaseActivity
 import com.buddhathe18th.spotifyoffline.common.data.AppDatabase
 import com.buddhathe18th.spotifyoffline.main.SongWithArtistsAdapter
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import android.util.Log
 
 class PlaylistDetailActivity : BaseActivity() {
 
@@ -30,20 +32,20 @@ class PlaylistDetailActivity : BaseActivity() {
         findViewById<TextView>(R.id.textPlaylistName).text = playlistName
         findViewById<ImageButton>(R.id.buttonBack).setOnClickListener { finish() }
         findViewById<Button>(R.id.buttonPlayAll).setOnClickListener {
-            findViewById<Button>(R.id.buttonPlayAll).setOnClickListener {
-                Log.d("PlaylistDetailActivity", "Play All button clicked")
-                lifecycleScope.launch {
-                    // Get all songs from the current adapter
-                    val songs = adapter.getCurrentSongs() // You'll need to expose this from adapter
+            Log.d("PlaylistDetailActivity", "Play All button clicked")
+            lifecycleScope.launch {
+                // Get all songs from the current adapter
+                val songs = adapter.getCurrentSongs() // You'll need to expose this from adapter
 
-                    if (songs.isNotEmpty()) {
-                        playQueue.setQueue(songs, 0)
-                        playSongAtCurrentIndex()
-                        Log.d("PlaylistDetailActivity", "Added ${songs.size} songs to play queue and started playback.")
-                    }else{
-                        Log.d("PlaylistDetailActivity", "No songs to play in this playlist.")
-                    }
-
+                if (songs.isNotEmpty()) {
+                    playQueue.setQueue(songs, 0)
+                    playSongAtCurrentIndex()
+                    Log.d(
+                            "PlaylistDetailActivity",
+                            "Added ${songs.size} songs to play queue and started playback."
+                    )
+                } else {
+                    Log.d("PlaylistDetailActivity", "No songs to play in this playlist.")
                 }
                 updatePlayerUI()
             }
@@ -63,16 +65,19 @@ class PlaylistDetailActivity : BaseActivity() {
 
     private fun loadPlaylistSongs(playlistId: String) {
         lifecycleScope.launch {
-            db.playlistDao().getPlaylistWithSongs(playlistId).collect { playlistWithSongs ->
-                val songIds = playlistWithSongs.songs.map { it.id }
+            db.playlistDao()
+                    .getPlaylistWithSongs(playlistId)
+                    .flatMapLatest { playlistWithSongs ->
+                        val songIds = playlistWithSongs.songs.map { it.id }
 
-                db.songDao().getAllSongsWithArtists().collect { allSongs ->
-                    val songs = allSongs.filter { it.song.id in songIds }
-                    adapter.updateSongs(songs)
-
-                    findViewById<TextView>(R.id.textPlaylistInfo).text = "${songs.size} songs"
-                }
-            }
+                        db.songDao().getAllSongsWithArtists().map { allSongs ->
+                            allSongs.filter { it.song.id in songIds }
+                        }
+                    }
+                    .collect { songs ->
+                        adapter.updateSongs(songs)
+                        findViewById<TextView>(R.id.textPlaylistInfo).text = "${songs.size} songs"
+                    }
         }
     }
 }

@@ -10,8 +10,8 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:background="#FF6B9D"
-        android:gravity="center_vertical">
-        
+        android:gravity="center_vertical"
+        android:descendantFocusability="blocksDescendants">
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -53,11 +53,14 @@
             android:id="@+id/buttonPlayAll"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
             android:text="Play All"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="false"
             android:drawableStart="@android:drawable/ic_media_play"
             android:drawablePadding="8dp" />
-            
+
+
     </LinearLayout>
 
     <!-- Songs list -->
