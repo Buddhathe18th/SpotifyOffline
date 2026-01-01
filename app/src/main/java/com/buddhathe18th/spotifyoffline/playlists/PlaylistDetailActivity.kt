@@ -45,6 +45,7 @@ class PlaylistDetailActivity : BaseActivity() {
                     }
 
                 }
+                updatePlayerUI()
             }
         }
 

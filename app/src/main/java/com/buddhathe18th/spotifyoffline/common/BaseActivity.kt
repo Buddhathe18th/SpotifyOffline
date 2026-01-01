@@ -1,5 +1,7 @@
 package com.buddhathe18th.spotifyoffline.common
 
+import android.app.Activity
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.media.MediaMetadataRetriever
@@ -18,15 +20,13 @@ import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.WindowCompat
 import com.buddhathe18th.spotifyoffline.R
 import com.buddhathe18th.spotifyoffline.common.player.MusicPlayerManager
 import com.buddhathe18th.spotifyoffline.common.player.PlayQueue
 import com.buddhathe18th.spotifyoffline.common.player.QueueManager
-import androidx.activity.result.contract.ActivityResultContracts
-import android.app.Activity
 import com.buddhathe18th.spotifyoffline.queue.QueueActivity
-import android.content.Intent
 
 open class BaseActivity : ComponentActivity() {
 
@@ -135,12 +135,12 @@ open class BaseActivity : ComponentActivity() {
                 musicPlayer.pause()
                 buttonPlayPause.setImageResource(android.R.drawable.ic_media_play)
                 stopProgressUpdates()
-                Log.d("BaseActivity", "Paused playback")
+                Log.d("MainActivity", "Paused playback")
             } else {
                 musicPlayer.resume()
                 buttonPlayPause.setImageResource(android.R.drawable.ic_media_pause)
                 startProgressUpdates()
-                Log.d("BaseActivity", "Resumed playback")
+                Log.d("MainActivity", "Resumed playback")
             }
         }
 
@@ -150,34 +150,38 @@ open class BaseActivity : ComponentActivity() {
         buttonShuffle.setOnClickListener {
             playQueue.toggleShuffle()
             updateShuffleButton()
-            Log.d("BaseActivity", "Shuffle: ${playQueue.isShuffleEnabled()}")
+            Log.d("MainActivity", "Shuffle: ${playQueue.isShuffleEnabled()}")
         }
 
         buttonRepeat.setOnClickListener {
             playQueue.toggleRepeatMode()
             updateRepeatButton()
-            Log.d("BaseActivity", "Repeat mode: ${playQueue.getRepeatMode()}")
+            Log.d("MainActivity", "Repeat mode: ${playQueue.getRepeatMode()}")
         }
 
         buttonViewQueue.setOnClickListener {
-            // Open QueueActivity
-            Log.d("BaseActivity", "Opening QueueActivity")
             queueLauncher.launch(Intent(this, QueueActivity::class.java))
         }
 
         // SeekBar listener
-        seekBarProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {}
+        seekBarProgress.setOnSeekBarChangeListener(
+                object : SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(
+                            seekBar: SeekBar?,
+                            progress: Int,
+                            fromUser: Boolean
+                    ) {}
 
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                isUserDragging = true
-            }
+                    override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                        isUserDragging = true
+                    }
 
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                isUserDragging = false
-                seekBar?.let { musicPlayer.seekTo(it.progress) }
-            }
-        })
+                    override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                        isUserDragging = false
+                        seekBar?.let { musicPlayer.seekTo(it.progress) }
+                    }
+                }
+        )
     }
 
     protected fun updatePlayerUI() {
@@ -197,8 +201,8 @@ open class BaseActivity : ComponentActivity() {
             }
 
             buttonPlayPause.setImageResource(
-                if (musicPlayer.isPlaying()) android.R.drawable.ic_media_pause
-                else android.R.drawable.ic_media_play
+                    if (musicPlayer.isPlaying()) android.R.drawable.ic_media_pause
+                    else android.R.drawable.ic_media_play
             )
             buttonPlayPause.isEnabled = true
             updateNavigationButtons()
@@ -222,11 +226,12 @@ open class BaseActivity : ComponentActivity() {
     }
 
     private fun updateRepeatButton() {
-        buttonRepeat.alpha = when (playQueue.getRepeatMode()) {
-            PlayQueue.RepeatMode.NONE -> 0.5f
-            PlayQueue.RepeatMode.ALL -> 1.0f
-            PlayQueue.RepeatMode.ONE -> 1.0f
-        }
+        buttonRepeat.alpha =
+                when (playQueue.getRepeatMode()) {
+                    PlayQueue.RepeatMode.NONE -> 0.5f
+                    PlayQueue.RepeatMode.ALL -> 1.0f
+                    PlayQueue.RepeatMode.ONE -> 1.0f
+                }
     }
 
     protected fun startProgressUpdates() {
@@ -239,27 +244,28 @@ open class BaseActivity : ComponentActivity() {
         handler.removeCallbacks(updateProgressRunnable)
     }
 
-    private val updateProgressRunnable = object : Runnable {
-        override fun run() {
-            if (musicPlayer.isPlaying()) {
-                val currentPos = musicPlayer.getCurrentPosition()
-                val duration = musicPlayer.getDuration()
+    private val updateProgressRunnable =
+            object : Runnable {
+                override fun run() {
+                    if (musicPlayer.isPlaying()) {
+                        val currentPos = musicPlayer.getCurrentPosition()
+                        val duration = musicPlayer.getDuration()
 
-                if (duration > 0) {
-                    seekBarProgress.max = duration
-                    if (!isUserDragging) {
-                        seekBarProgress.progress = currentPos
+                        if (duration > 0) {
+                            seekBarProgress.max = duration
+                            if (!isUserDragging) {
+                                seekBarProgress.progress = currentPos
+                            }
+                            textCurrentTime.text = formatTime(currentPos)
+                            textTotalTime.text = formatTime(duration)
+                        }
                     }
-                    textCurrentTime.text = formatTime(currentPos)
-                    textTotalTime.text = formatTime(duration)
+
+                    if (isUpdatingProgress) {
+                        handler.postDelayed(this, 1000)
+                    }
                 }
             }
-
-            if (isUpdatingProgress) {
-                handler.postDelayed(this, 1000)
-            }
-        }
-    }
 
     private fun formatTime(millis: Int): String {
         val seconds = (millis / 1000) % 60
@@ -290,8 +296,57 @@ open class BaseActivity : ComponentActivity() {
     }
 
     protected open fun playSongAtCurrentIndex() {
-        // Override in child activities to implement actual playback
-        Log.w("BaseActivity", "playSongAtCurrentIndex() not implemented in ${this::class.simpleName}")
+        val song = playQueue.getCurrentSong() ?: return
+
+        val textTitle = findViewById<TextView>(R.id.nowPlayingTitle)
+        val textArtist = findViewById<TextView>(R.id.nowPlayingArtist)
+        val buttonPlayPause = findViewById<ImageButton>(R.id.buttonPlayPause)
+        val imageAlbumArt = findViewById<ImageView>(R.id.imageAlbumArt)
+
+        musicPlayer.play(
+                context = this,
+                uri = Uri.parse(song.song.uri),
+                onPrepared = {
+                    Log.d("MainActivity", "Playback started for ${song.song.title}")
+                    val albumArtBytes = getEmbeddedAlbumArt(Uri.parse(song.song.uri))
+                    runOnUiThread {
+                        textTitle.text = "${song.song.title}"
+                        textArtist.text = "${song.artistNames}"
+                        if (albumArtBytes != null) {
+                            val bitmap =
+                                    BitmapFactory.decodeByteArray(
+                                            albumArtBytes,
+                                            0,
+                                            albumArtBytes.size
+                                    )
+                            imageAlbumArt.setImageBitmap(bitmap)
+                        } else {
+                            imageAlbumArt.setImageResource(0) // Clear previous image
+                            imageAlbumArt.setBackgroundColor(android.graphics.Color.DKGRAY)
+                        }
+
+                        buttonPlayPause.setImageResource(android.R.drawable.ic_media_pause)
+                        buttonPlayPause.isEnabled = true
+                        updateNavigationButtons()
+                        startProgressUpdates()
+                    }
+                },
+                onCompletion = {
+                    Log.d("MainActivity", "Playback completed for ${song.song.title}")
+                    runOnUiThread {
+                        if (playQueue.hasNext()) {
+                            playNextSong()
+                        } else {
+                            textTitle.text = "Nothing playing"
+                            textArtist.text = ""
+                            buttonPlayPause.setImageResource(android.R.drawable.ic_media_play)
+                            buttonPlayPause.isEnabled = false
+                            stopProgressUpdates()
+                            updateNavigationButtons()
+                        }
+                    }
+                }
+        )
     }
 
     private fun getEmbeddedAlbumArt(uri: Uri): ByteArray? {
