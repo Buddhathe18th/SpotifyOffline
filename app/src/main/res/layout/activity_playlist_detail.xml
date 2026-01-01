@@ -50,15 +50,25 @@
         </LinearLayout>
 
         <Button
+            android:id="@+id/buttonAddSongToPlaylist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:drawableStart="@android:drawable/ic_menu_add"
+            android:drawablePadding="8dp"
+            android:focusable="true"
+            android:focusableInTouchMode="false"
+            android:text="Add Song" />
+
+        <Button
             android:id="@+id/buttonPlayAll"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Play All"
             android:clickable="true"
-            android:focusable="true"
-            android:focusableInTouchMode="false"
             android:drawableStart="@android:drawable/ic_media_play"
-            android:drawablePadding="8dp" />
+            android:drawablePadding="0dp"
+            android:focusable="true"
+            android:focusableInTouchMode="false" />
 
 
     </LinearLayout>

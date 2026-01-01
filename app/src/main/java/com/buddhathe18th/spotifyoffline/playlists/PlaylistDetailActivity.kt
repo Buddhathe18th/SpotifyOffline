@@ -1,16 +1,20 @@
 package com.buddhathe18th.spotifyoffline.playlists
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.buddhathe18th.spotifyoffline.R
 import com.buddhathe18th.spotifyoffline.common.BaseActivity
 import com.buddhathe18th.spotifyoffline.common.data.AppDatabase
+import com.buddhathe18th.spotifyoffline.common.data.repository.PlaylistRepository
 import com.buddhathe18th.spotifyoffline.main.SongWithArtistsAdapter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -21,6 +25,18 @@ class PlaylistDetailActivity : BaseActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: SongWithArtistsAdapter
     private val db by lazy { AppDatabase.getDatabase(this) }
+    private val playlistRepo by lazy { PlaylistRepository(this) }
+    private lateinit var playlistId: String
+
+    private val addSongsLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val songIds = result.data?.getStringArrayListExtra("SELECTED_SONG_IDS")
+                    songIds?.forEach { songId ->
+                        lifecycleScope.launch { playlistRepo.addSongToPlaylist(playlistId, songId) }
+                    }
+                }
+            }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,11 +47,11 @@ class PlaylistDetailActivity : BaseActivity() {
 
         findViewById<TextView>(R.id.textPlaylistName).text = playlistName
         findViewById<ImageButton>(R.id.buttonBack).setOnClickListener { finish() }
+
         findViewById<Button>(R.id.buttonPlayAll).setOnClickListener {
             Log.d("PlaylistDetailActivity", "Play All button clicked")
             lifecycleScope.launch {
-                // Get all songs from the current adapter
-                val songs = adapter.getCurrentSongs() // You'll need to expose this from adapter
+                val songs = adapter.getCurrentSongs()
 
                 if (songs.isNotEmpty()) {
                     playQueue.setQueue(songs, 0)
@@ -51,6 +67,12 @@ class PlaylistDetailActivity : BaseActivity() {
             }
         }
 
+        findViewById<Button>(R.id.buttonAddSongToPlaylist).setOnClickListener {
+            val intent = Intent(this, SongSelectorActivity::class.java)
+            intent.putExtra("PLAYLIST_ID", playlistId)
+            addSongsLauncher.launch(intent)
+        }
+
         recyclerView = findViewById(R.id.recyclerSongs)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
@@ -62,7 +84,8 @@ class PlaylistDetailActivity : BaseActivity() {
 
         loadPlaylistSongs(playlistId)
     }
-
+    
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     private fun loadPlaylistSongs(playlistId: String) {
         lifecycleScope.launch {
             db.playlistDao()
