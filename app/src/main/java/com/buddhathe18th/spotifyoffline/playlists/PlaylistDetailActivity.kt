@@ -15,14 +15,13 @@ import com.buddhathe18th.spotifyoffline.R
 import com.buddhathe18th.spotifyoffline.common.BaseActivity
 import com.buddhathe18th.spotifyoffline.common.data.AppDatabase
 import com.buddhathe18th.spotifyoffline.common.data.repository.PlaylistRepository
-import com.buddhathe18th.spotifyoffline.main.SongWithArtistsAdapter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class PlaylistDetailActivity : BaseActivity() {
 
     private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: SongWithArtistsAdapter
+    private lateinit var adapter: PlaylistSongAdapter
     private val db by lazy { AppDatabase.getDatabase(this) }
     private val playlistRepo by lazy { PlaylistRepository(this) }
     private lateinit var playlistId: String
@@ -71,7 +70,6 @@ class PlaylistDetailActivity : BaseActivity() {
         setContentView(R.layout.activity_playlist_detail)
 
         playlistId = intent.getStringExtra("PLAYLIST_ID") ?: return finish()
-        Log.d("PlaylistDetailActivity", "Opened PlaylistDetailActivity for playlistId: $playlistId")
         val playlistName = intent.getStringExtra("PLAYLIST_NAME") ?: "Playlist"
 
         findViewById<TextView>(R.id.textPlaylistName).text = playlistName
@@ -105,10 +103,27 @@ class PlaylistDetailActivity : BaseActivity() {
         recyclerView = findViewById(R.id.recyclerSongs)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
+        // Use new adapter with remove callback
         adapter =
-                SongWithArtistsAdapter(emptyList()) { song ->
-                    // Play song
-                }
+                PlaylistSongAdapter(
+                        emptyList(),
+                        onClick = { song ->
+                            // Play song
+                        },
+                        onRemove = { song ->
+                            // Remove song from playlist
+                            lifecycleScope.launch {
+                                playlistRepo.removeSongFromPlaylist(playlistId, song.song.id)
+
+                                android.widget.Toast.makeText(
+                                                this@PlaylistDetailActivity,
+                                                "Removed ${song.song.title} from playlist",
+                                                android.widget.Toast.LENGTH_SHORT
+                                        )
+                                        .show()
+                            }
+                        }
+                )
         recyclerView.adapter = adapter
 
         loadPlaylistSongs(playlistId)
