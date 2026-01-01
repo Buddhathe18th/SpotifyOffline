@@ -31,7 +31,8 @@
         <activity android:name=".queue.QueueActivity" />
         <activity android:name=".playlists.PlaylistActivity" />
         <activity android:name=".playlists.PlaylistDetailActivity" />
-        <activity android:name=".playlists.SongSelectorActivity" />
+        <activity android:name=".playlists.SongSelectorActivity"
+            android:launchMode="singleTop" />
     </application>
 
 </manifest>

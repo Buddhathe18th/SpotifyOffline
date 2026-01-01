@@ -16,8 +16,6 @@ import com.buddhathe18th.spotifyoffline.common.BaseActivity
 import com.buddhathe18th.spotifyoffline.common.data.AppDatabase
 import com.buddhathe18th.spotifyoffline.common.data.repository.PlaylistRepository
 import com.buddhathe18th.spotifyoffline.main.SongWithArtistsAdapter
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class PlaylistDetailActivity : BaseActivity() {
@@ -32,8 +30,20 @@ class PlaylistDetailActivity : BaseActivity() {
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == Activity.RESULT_OK) {
                     val songIds = result.data?.getStringArrayListExtra("SELECTED_SONG_IDS")
-                    songIds?.forEach { songId ->
-                        lifecycleScope.launch { playlistRepo.addSongToPlaylist(playlistId, songId) }
+
+                    if (songIds != null && songIds.isNotEmpty()) {
+                        songIds.forEach { songId ->
+                            lifecycleScope.launch {
+                                playlistRepo.addSongToPlaylist(playlistId, songId)
+                            }
+                        }
+
+                        android.widget.Toast.makeText(
+                                        this,
+                                        "Added ${songIds.size} song(s) to playlist",
+                                        android.widget.Toast.LENGTH_SHORT
+                                )
+                                .show()
                     }
                 }
             }
@@ -42,7 +52,8 @@ class PlaylistDetailActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_playlist_detail)
 
-        val playlistId = intent.getStringExtra("PLAYLIST_ID") ?: return finish()
+        playlistId = intent.getStringExtra("PLAYLIST_ID") ?: return finish()
+        Log.d("PlaylistDetailActivity", "Opened PlaylistDetailActivity for playlistId: $playlistId")
         val playlistName = intent.getStringExtra("PLAYLIST_NAME") ?: "Playlist"
 
         findViewById<TextView>(R.id.textPlaylistName).text = playlistName
@@ -84,23 +95,13 @@ class PlaylistDetailActivity : BaseActivity() {
 
         loadPlaylistSongs(playlistId)
     }
-    
-    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+
     private fun loadPlaylistSongs(playlistId: String) {
         lifecycleScope.launch {
-            db.playlistDao()
-                    .getPlaylistWithSongs(playlistId)
-                    .flatMapLatest { playlistWithSongs ->
-                        val songIds = playlistWithSongs.songs.map { it.id }
-
-                        db.songDao().getAllSongsWithArtists().map { allSongs ->
-                            allSongs.filter { it.song.id in songIds }
-                        }
-                    }
-                    .collect { songs ->
-                        adapter.updateSongs(songs)
-                        findViewById<TextView>(R.id.textPlaylistInfo).text = "${songs.size} songs"
-                    }
+            db.playlistDao().getPlaylistSongsInOrder(playlistId).collect { songs ->
+                adapter.updateSongs(songs)
+                findViewById<TextView>(R.id.textPlaylistInfo).text = "${songs.size} songs"
+            }
         }
     }
 }

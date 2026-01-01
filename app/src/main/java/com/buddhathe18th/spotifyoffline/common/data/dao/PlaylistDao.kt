@@ -5,6 +5,7 @@ import com.buddhathe18th.spotifyoffline.common.data.database.PlaylistEntity
 import com.buddhathe18th.spotifyoffline.common.data.database.PlaylistWithSongCount
 import com.buddhathe18th.spotifyoffline.common.data.database.PlaylistWithSongs
 import com.buddhathe18th.spotifyoffline.common.data.database.SongEntity
+import com.buddhathe18th.spotifyoffline.common.data.database.SongWithArtists
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -33,7 +34,7 @@ interface PlaylistDao {
     ORDER BY ps.position ASC
     """
     )
-    fun getPlaylistSongsInOrder(playlistId: String): Flow<List<SongEntity>>
+    fun getPlaylistSongsInOrder(playlistId: String): Flow<List<SongWithArtists>>
 
     @Insert suspend fun insertPlaylist(playlist: PlaylistEntity)
 

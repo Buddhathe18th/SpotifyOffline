@@ -4,19 +4,19 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import android.widget.SearchView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.buddhathe18th.spotifyoffline.R
 import com.buddhathe18th.spotifyoffline.common.data.AppDatabase
-import com.buddhathe18th.spotifyoffline.main.SongWithArtistsAdapter
 import kotlinx.coroutines.launch
 
 class SongSelectorActivity : AppCompatActivity() {
 
     private val selectedSongIds = mutableSetOf<String>()
-    private lateinit var adapter: SongWithArtistsAdapter
+    private lateinit var adapter: SelectableSongAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,7 +25,7 @@ class SongSelectorActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerAllSongs)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        adapter = SongWithArtistsAdapter(emptyList()) { song ->
+        adapter = SelectableSongAdapter(emptyList(), selectedSongIds) { song ->
             // Toggle selection
             if (selectedSongIds.contains(song.song.id)) {
                 selectedSongIds.remove(song.song.id)
@@ -34,6 +34,19 @@ class SongSelectorActivity : AppCompatActivity() {
             }
         }
         recyclerView.adapter = adapter
+
+        // Setup SearchView
+        val searchView = findViewById<SearchView>(R.id.searchView)
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                adapter.filter(newText ?: "")
+                return true
+            }
+        })
 
         findViewById<Button>(R.id.buttonDone).setOnClickListener {
             val intent = Intent()
