@@ -2,6 +2,7 @@ package com.buddhathe18th.spotifyoffline.common.data.dao
 
 import androidx.room.*
 import com.buddhathe18th.spotifyoffline.common.data.database.PlaylistSongCrossRef
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PlaylistSongDao {
@@ -23,4 +24,7 @@ interface PlaylistSongDao {
     
     @Query("DELETE FROM playlist_songs WHERE playlistId = :playlistId")
     suspend fun clearPlaylist(playlistId: String)
+
+    @Query("SELECT COUNT(*) FROM playlist_songs WHERE playlistId = :playlistId AND songId = :songId")
+    fun isSongInPlaylist(playlistId: String, songId: String): Flow<Int?>
 }

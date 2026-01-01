@@ -16,6 +16,7 @@ import com.buddhathe18th.spotifyoffline.common.BaseActivity
 import com.buddhathe18th.spotifyoffline.common.data.AppDatabase
 import com.buddhathe18th.spotifyoffline.common.data.repository.PlaylistRepository
 import com.buddhathe18th.spotifyoffline.main.SongWithArtistsAdapter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class PlaylistDetailActivity : BaseActivity() {
@@ -31,19 +32,36 @@ class PlaylistDetailActivity : BaseActivity() {
                 if (result.resultCode == Activity.RESULT_OK) {
                     val songIds = result.data?.getStringArrayListExtra("SELECTED_SONG_IDS")
 
+                    var added = 0
+
                     if (songIds != null && songIds.isNotEmpty()) {
                         songIds.forEach { songId ->
+                            Log.d(
+                                    "PlaylistDetailActivity",
+                                    "Adding songId: $songId to playlistId: $playlistId"
+                            )
+
                             lifecycleScope.launch {
-                                playlistRepo.addSongToPlaylist(playlistId, songId)
+                                val value =
+                                        playlistRepo.checkSongInPlaylist(playlistId, songId).first()
+                                if (value == null || value == 0) {
+                                    added++
+                                    playlistRepo.addSongToPlaylist(playlistId, songId)
+                                    Log.d("PlaylistDetailActivity", "Added song $songId")
+                                    Log.d(
+                                            "PlaylistDetailActivity",
+                                            "Total songs added so far: $added"
+                                    )
+                                } else {
+                                    Log.d(
+                                            "PlaylistDetailActivity",
+                                            "Song $songId already exists, skipping"
+                                    )
+                                }
                             }
                         }
 
-                        android.widget.Toast.makeText(
-                                        this,
-                                        "Added ${songIds.size} song(s) to playlist",
-                                        android.widget.Toast.LENGTH_SHORT
-                                )
-                                .show()
+                        Log.d("PlaylistDetailActivity", "Total songs added so far: $added")
                     }
                 }
             }

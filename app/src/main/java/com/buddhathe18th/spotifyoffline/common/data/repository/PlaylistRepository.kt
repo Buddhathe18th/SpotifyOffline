@@ -18,6 +18,10 @@ class PlaylistRepository(context: Context) {
         return playlistDao.getAllPlaylistsWithCount()
     }
 
+    fun checkSongInPlaylist(playlistId: String, songId: String): Flow<Int?> {
+        return playlistSongDao.isSongInPlaylist(playlistId, songId)
+    }
+
     suspend fun createPlaylist(name: String): PlaylistEntity =
             withContext(Dispatchers.IO) {
                 val playlist =
