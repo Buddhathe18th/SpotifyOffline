@@ -11,14 +11,14 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:background="?android:attr/selectableItemBackground">
 
-        <!-- Playlist Cover Image -->
+        <!-- Playlist Cover Image - Square that matches parent height -->
         <ImageView
             android:id="@+id/imagePlaylistCover"
-            android:layout_width="match_parent"
-            android:layout_height="80dp"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
             android:background="#FF6B9D"
             android:scaleType="centerCrop"
             android:src="@android:drawable/ic_menu_gallery" />
