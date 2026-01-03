@@ -52,6 +52,20 @@ class SearchActivity : FragmentActivity() {
         // Connect TabLayout with ViewPager2
         TabLayoutMediator(tabLayout, viewPager) { tab, position -> tab.text = tabTitles[position] }
                 .attach()
+
+        viewPager.registerOnPageChangeCallback(
+                object : ViewPager2.OnPageChangeCallback() {
+                    override fun onPageSelected(position: Int) {
+                        super.onPageSelected(position)
+
+                        // Re-run search for newly visible tab
+                        val query = editSearch.text.toString()
+                        if (query.isNotEmpty()) {
+                            pagerAdapter.getFragmentAt(position).search(query)
+                        }
+                    }
+                }
+        )
     }
 
     private fun setupSearch() {

@@ -16,7 +16,9 @@ class SearchPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(acti
 
     override fun getItemCount(): Int = fragments.size
 
-    override fun createFragment(position: Int): Fragment = fragments[position]
+    override fun createFragment(position: Int): Fragment{
+        return fragments[position]
+    }
 
     fun getFragmentAt(position: Int): SearchResultFragment = fragments[position]
 }
