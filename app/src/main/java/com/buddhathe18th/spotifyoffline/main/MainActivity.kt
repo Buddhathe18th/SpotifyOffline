@@ -1,7 +1,6 @@
 package com.buddhathe18th.spotifyoffline.main
 
 import android.Manifest
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -22,45 +21,12 @@ import com.buddhathe18th.spotifyoffline.common.data.AppDatabase
 import com.buddhathe18th.spotifyoffline.common.data.repository.PlaylistRepository
 import com.buddhathe18th.spotifyoffline.common.data.repository.SongCacheRepository
 import com.buddhathe18th.spotifyoffline.playlists.PlaylistActivity
-import com.buddhathe18th.spotifyoffline.queue.QueueActivity
+import com.buddhathe18th.spotifyoffline.search.SearchActivity
 import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity() {
 
     private lateinit var songAdapter: SongWithArtistsAdapter
-
-    // private val queueLauncher =
-    //         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-    //             if (result.resultCode == Activity.RESULT_OK) {
-    //                 val playCurrent =
-    //                         result.data?.getBooleanExtra(QueueActivity.EXTRA_PLAY_CURRENT, false)
-    //                                 ?: false
-
-    //                 if (playCurrent) {
-    //                     Log.d("MainActivity", "Playing song at current index after removal")
-    //                     if (playQueue.getCurrentSong() != null) {
-    //                         playSongAtCurrentIndex()
-    //                     } else {
-    //                         Log.d("MainActivity", "Queue empty after removal, stopping playback")
-    //                         musicPlayer.stopAndRelease()
-    //                         updatePlayerUI()
-    //                         stopProgressUpdates()
-    //                     }
-    //                     return@registerForActivityResult
-    //                 }
-
-    //                 val jumpIndex =
-    //                         result.data?.getIntExtra(QueueActivity.EXTRA_JUMP_INDEX, -1) ?: -1
-    //                 if (jumpIndex >= 0) {
-    //                     Log.d(
-    //                             "MainActivity",
-    //                             "Jumping to index from queue: $jumpIndex to song ${playQueue.getQueue()[jumpIndex].song.title}"
-    //                     )
-    //                     playQueue.setCurrentIndex(jumpIndex)
-    //                     playSongAtCurrentIndex()
-    //                 }
-    //             }
-    //         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,6 +35,7 @@ class MainActivity : BaseActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerSongs)
         val scanButton = findViewById<Button>(R.id.buttonScan)
         val buttonViewPlaylists = findViewById<Button>(R.id.buttonViewPlaylists)
+        val buttonSearch = findViewById<Button>(R.id.buttonSearch)
 
         // Initialize adapter with empty list and click handler
         songAdapter =
@@ -112,11 +79,6 @@ class MainActivity : BaseActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = songAdapter
 
-        // buttonViewQueue is now in BaseActivity
-        // buttonViewQueue.setOnClickListener {
-        //     queueLauncher.launch(Intent(this, QueueActivity::class.java))
-        // }
-
         scanButton.setOnClickListener {
             Log.d("MainActivity", "Scan button clicked")
 
@@ -134,6 +96,8 @@ class MainActivity : BaseActivity() {
         buttonViewPlaylists.setOnClickListener {
             startActivity(Intent(this, PlaylistActivity::class.java))
         }
+
+        buttonSearch.setOnClickListener { startActivity(Intent(this, SearchActivity::class.java)) }
 
         ensureAudioPermission {
             Log.d("MainActivity", "Permission granted, loading songs from database...")

@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.buddhathe18th.spotifyoffline.R
 import com.buddhathe18th.spotifyoffline.common.data.database.SongWithArtists
+import com.bumptech.glide.Glide
 
 class QueueAdapter(
         private val songs: MutableList<SongWithArtists>,
