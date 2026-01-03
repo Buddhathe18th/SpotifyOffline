@@ -51,43 +51,38 @@ class QueueAdapter(
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
-        val song = songs[position]
-        holder.textTitle.text = "${song.song.title}"
-        holder.textArtist.text = "${song.artistNames}"
+    val song = songs[position]
+    holder.textTitle.text = song.song.title
+    holder.textArtist.text = song.artistNames
 
-        val albumArtBytes = getEmbeddedAlbumArt(holder.itemView.context, Uri.parse(song.song.uri))
-        if (albumArtBytes != null) {
-            val bitmap = BitmapFactory.decodeByteArray(albumArtBytes, 0, albumArtBytes.size)
-            holder.albumImage.setImageBitmap(bitmap)
-        } else {
-            holder.albumImage.setImageResource(0) // Clear previous image
-            holder.albumImage.setBackgroundColor(android.graphics.Color.DKGRAY)
-        }
+    // Use Glide - handles everything in background!
+    Glide.with(holder.itemView.context)
+        .load(Uri.parse(song.song.uri))
+        .placeholder(android.R.color.darker_gray)
+        .error(android.R.color.darker_gray)
+        .into(holder.albumImage)
 
-        // Highlight currently playing row
-        val isCurrent = position == currentIndex
-        holder.root.setBackgroundColor(
-                if (isCurrent)
-                        ContextCompat.getColor(
-                                holder.itemView.context,
-                                android.R.color.holo_blue_light
-                        )
-                else ContextCompat.getColor(holder.itemView.context, android.R.color.transparent)
-        )
-        holder.textTitle.setTypeface(null, if (isCurrent) Typeface.BOLD else Typeface.NORMAL)
+    // Highlight currently playing row
+    val isCurrent = position == currentIndex
+    holder.root.setBackgroundColor(
+        if (isCurrent)
+            ContextCompat.getColor(holder.itemView.context, android.R.color.holo_blue_light)
+        else ContextCompat.getColor(holder.itemView.context, android.R.color.transparent)
+    )
+    holder.textTitle.setTypeface(null, if (isCurrent) Typeface.BOLD else Typeface.NORMAL)
 
-        holder.root.setOnClickListener { onTap(position) }
-        holder.buttonRemove.setOnClickListener {
-            // Remove instantly from adapter list for smooth UI
-            val removedPos = holder.bindingAdapterPosition
-            if (removedPos != RecyclerView.NO_POSITION) {
-                songs.removeAt(removedPos)
-                notifyItemRemoved(removedPos)
-                notifyItemRangeChanged(removedPos, songs.size)
-                onRemove(removedPos)
-            }
+    holder.root.setOnClickListener { onTap(position) }
+    holder.buttonRemove.setOnClickListener {
+        val removedPos = holder.bindingAdapterPosition
+        if (removedPos != RecyclerView.NO_POSITION) {
+            songs.removeAt(removedPos)
+            notifyItemRemoved(removedPos)
+            notifyItemRangeChanged(removedPos, songs.size)
+            onRemove(removedPos)
         }
     }
+}
+
 
     override fun getItemCount(): Int = songs.size
 

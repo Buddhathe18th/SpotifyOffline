@@ -30,14 +30,15 @@ class PlaylistAdapter(
         val textCount: TextView = itemView.findViewById(R.id.textSongCount)
         val textDate: TextView = itemView.findViewById(R.id.textPlaylistDate)
 
+        val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+
         fun bind(playlist: PlaylistWithSongCount) {
             textName.text = playlist.name
             textCount.text = "${playlist.songCount} songs"
             
             // Format date
-            val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-            textDate.text = "Created ${dateFormat.format(Date(playlist.createdAt))}"
             
+            textDate.text = "Created ${dateFormat.format(Date(playlist.createdAt))}"
             // Set color based on position
             val color = Color.parseColor(colors[bindingAdapterPosition % colors.size])
             imageCover.setBackgroundColor(color)

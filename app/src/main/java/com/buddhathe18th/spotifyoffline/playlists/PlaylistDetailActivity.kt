@@ -100,12 +100,6 @@ class PlaylistDetailActivity : BaseActivity() {
             addSongsLauncher.launch(intent)
         }
 
-        findViewById<Button>(R.id.buttonAddSongToPlaylist).setOnClickListener {
-            val intent = Intent(this, SongSelectorActivity::class.java)
-            intent.putExtra("PLAYLIST_ID", playlistId)
-            addSongsLauncher.launch(intent)
-        }
-
         findViewById<Button>(R.id.buttonDeletePlaylist).setOnClickListener {
             lifecycleScope.launch {
                 playlistRepo.deletePlaylist(playlistId)
@@ -117,12 +111,30 @@ class PlaylistDetailActivity : BaseActivity() {
         recyclerView = findViewById(R.id.recyclerSongs)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        // Use new adapter with remove callback
         adapter =
                 PlaylistSongAdapter(
                         emptyList(),
                         onClick = { song ->
-                            // Play song
+                            Log.d("PlaylistDetailActivity", "Song clicked: ${song.song.title}")
+                            lifecycleScope.launch {
+                                val songs = adapter.getCurrentSongs()
+                                val index = songs.indexOfFirst { it.song.id == song.song.id }
+
+                                if (songs.isNotEmpty()) {
+                                    playQueue.setQueue(songs, index)
+                                    playSongAtCurrentIndex()
+                                    Log.d(
+                                            "PlaylistDetailActivity",
+                                            "Added ${songs.size} songs to play queue and started playback on ${song.song.title}."
+                                    )
+                                } else {
+                                    Log.d(
+                                            "PlaylistDetailActivity",
+                                            "No songs to play in this playlist."
+                                    )
+                                }
+                                // updatePlayerUI()
+                            }
                         },
                         onRemove = { song ->
                             // Remove song from playlist

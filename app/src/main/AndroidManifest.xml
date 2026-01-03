@@ -16,6 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light">
         <!-- Change theme back to Theme.SpotifyOffline -->
+        <profileable android:shell="true" />
 
         <activity
             android:name=".main.MainActivity"
