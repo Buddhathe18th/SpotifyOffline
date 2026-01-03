@@ -23,195 +23,223 @@ import com.buddhathe18th.spotifyoffline.common.data.repository.SongCacheReposito
 import com.buddhathe18th.spotifyoffline.playlists.PlaylistActivity
 import com.buddhathe18th.spotifyoffline.search.SearchActivity
 import kotlinx.coroutines.launch
+import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
+import com.buddhathe18th.spotifyoffline.common.ViewPagerAdapter
 
 class MainActivity : BaseActivity() {
-
-    private lateinit var songAdapter: SongWithArtistsAdapter
-
+    private lateinit var viewPager: ViewPager2
+    private lateinit var tabLayout: TabLayout
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        val recyclerView = findViewById<RecyclerView>(R.id.recyclerSongs)
-        val scanButton = findViewById<Button>(R.id.buttonScan)
-        val buttonViewPlaylists = findViewById<Button>(R.id.buttonViewPlaylists)
-        val buttonSearch = findViewById<Button>(R.id.buttonSearch)
-
-        // Initialize adapter with empty list and click handler
-        songAdapter =
-                SongWithArtistsAdapter(emptyList()) { songWithArtists ->
-                    Log.d("MainActivity", "Clicked: ${songWithArtists.song.title}")
-
-                    val currentQueue = playQueue.getQueue()
-                    if (songWithArtists == playQueue.getCurrentSong()) {
-                        Log.d(
-                                "MainActivity",
-                                "Song: ${songWithArtists.song.title} is already playing"
-                        )
-                        musicPlayer.restartCurrentSong()
-                    } else if (currentQueue.contains(songWithArtists)) {
-                        Log.d(
-                                "MainActivity",
-                                "Song: ${songWithArtists.song.title} is already in queue"
-                        )
-                        val indexInQueue = currentQueue.indexOf(songWithArtists)
-                        playQueue.setCurrentIndex(indexInQueue)
-                    } else {
-                        Log.d(
-                                "MainActivity",
-                                "Song: ${songWithArtists.song.title} is a new song in queue"
-                        )
-
-                        if (playQueue.size() == 0) {
-                            playQueue.addToQueue(0, songWithArtists)
-                            playQueue.setQueue(playQueue.getQueue(), 0)
-                        } else {
-                            playQueue.addToQueue(playQueue.getCurrentIndex() + 1, songWithArtists)
-                            playQueue.setQueue(
-                                    playQueue.getQueue(),
-                                    playQueue.getCurrentIndex() + 1
-                            )
-                        }
-                    }
-                    playSongAtCurrentIndex()
-                }
-
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = songAdapter
-
-        scanButton.setOnClickListener {
-            Log.d("MainActivity", "Scan button clicked")
-
-            lifecycleScope.launch {
-                val repository = SongCacheRepository(this@MainActivity)
-                try {
-                    repository.syncFromMediaStore(this@MainActivity)
-                    Log.d("MainActivity", "Scan complete!")
-                } catch (e: Exception) {
-                    Log.e("MainActivity", "Scan failed", e)
-                }
+        
+        viewPager = findViewById(R.id.viewPager)
+        tabLayout = findViewById(R.id.tabLayout)
+        
+        // Set up ViewPager with adapter
+        val adapter = ViewPagerAdapter(this)
+        viewPager.adapter = adapter
+        
+        // Connect TabLayout with ViewPager2
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            tab.text = when (position) {
+                0 -> "Home"
+                1 -> "Playlists"
+                2 -> "Search"
+                else -> null
             }
-        }
-
-        buttonViewPlaylists.setOnClickListener {
-            startActivity(Intent(this, PlaylistActivity::class.java))
-        }
-
-        buttonSearch.setOnClickListener { startActivity(Intent(this, SearchActivity::class.java)) }
-
-        ensureAudioPermission {
-            Log.d("MainActivity", "Permission granted, loading songs from database...")
-
-            lifecycleScope.launch {
-                try {
-                    val db = AppDatabase.getDatabase(this@MainActivity)
-                    lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                        db.songDao().getAllSongsWithArtists().collect { songs ->
-                            Log.d("MainActivity", "Loaded ${songs.size} songs from database")
-                            songAdapter.updateSongs(songs)
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.e("MainActivity", "Error loading songs from database", e)
-                }
-            }
-        }
-
-        // playlistTest()
+        }.attach()
     }
 
-    private val audioPermission: String
-        get() =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    Manifest.permission.READ_MEDIA_AUDIO
-                } else {
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                }
+    // private lateinit var songAdapter: SongWithArtistsAdapter
 
-    private var pendingOnGranted: (() -> Unit)? = null
+    // override fun onCreate(savedInstanceState: Bundle?) {
+    //     super.onCreate(savedInstanceState)
+    //     setContentView(R.layout.activity_main)
 
-    private val audioPermissionLauncher =
-            registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-                if (isGranted) {
-                    Log.d("MainActivity", "Permission granted")
-                    pendingOnGranted?.invoke()
-                } else {
-                    Log.d("MainActivity", "Permission denied")
-                }
-                pendingOnGranted = null
-            }
+    //     val recyclerView = findViewById<RecyclerView>(R.id.recyclerSongs)
+    //     val scanButton = findViewById<Button>(R.id.buttonScan)
+    //     val buttonViewPlaylists = findViewById<Button>(R.id.buttonViewPlaylists)
+    //     val buttonSearch = findViewById<Button>(R.id.buttonSearch)
 
-    fun ensureAudioPermission(onGranted: () -> Unit) {
-        val granted =
-                ContextCompat.checkSelfPermission(this, audioPermission) ==
-                        PackageManager.PERMISSION_GRANTED
+    //     // Initialize adapter with empty list and click handler
+    //     songAdapter =
+    //             SongWithArtistsAdapter(emptyList()) { songWithArtists ->
+    //                 Log.d("MainActivity", "Clicked: ${songWithArtists.song.title}")
 
-        if (granted) {
-            onGranted()
-        } else {
-            pendingOnGranted = onGranted
-            audioPermissionLauncher.launch(audioPermission)
-        }
-    }
+    //                 val currentQueue = playQueue.getQueue()
+    //                 if (songWithArtists == playQueue.getCurrentSong()) {
+    //                     Log.d(
+    //                             "MainActivity",
+    //                             "Song: ${songWithArtists.song.title} is already playing"
+    //                     )
+    //                     musicPlayer.restartCurrentSong()
+    //                 } else if (currentQueue.contains(songWithArtists)) {
+    //                     Log.d(
+    //                             "MainActivity",
+    //                             "Song: ${songWithArtists.song.title} is already in queue"
+    //                     )
+    //                     val indexInQueue = currentQueue.indexOf(songWithArtists)
+    //                     playQueue.setCurrentIndex(indexInQueue)
+    //                 } else {
+    //                     Log.d(
+    //                             "MainActivity",
+    //                             "Song: ${songWithArtists.song.title} is a new song in queue"
+    //                     )
 
-    override fun onDestroy() {
-        super.onDestroy()
-        musicPlayer.stopAndRelease()
-        Log.d("MainActivity", "Activity destroyed, released player")
-    }
+    //                     if (playQueue.size() == 0) {
+    //                         playQueue.addToQueue(0, songWithArtists)
+    //                         playQueue.setQueue(playQueue.getQueue(), 0)
+    //                     } else {
+    //                         playQueue.addToQueue(playQueue.getCurrentIndex() + 1, songWithArtists)
+    //                         playQueue.setQueue(
+    //                                 playQueue.getQueue(),
+    //                                 playQueue.getCurrentIndex() + 1
+    //                         )
+    //                     }
+    //                 }
+    //                 playSongAtCurrentIndex()
+    //             }
 
-    override fun playSongAtCurrentIndex() {
-        val song = playQueue.getCurrentSong() ?: return
+    //     recyclerView.layoutManager = LinearLayoutManager(this)
+    //     recyclerView.adapter = songAdapter
 
-        musicPlayer.play(
-                context = this,
-                uri = Uri.parse(song.song.uri),
-                onPrepared = {
-                    Log.d("MainActivity", "Playback started for ${song.song.title}")
-                    runOnUiThread {
-                        updatePlayerUI()
-                        startProgressUpdates()
-                    }
-                },
-                onCompletion = {
-                    Log.d("MainActivity", "Playback completed for ${song.song.title}")
-                    runOnUiThread {
-                        if (playQueue.hasNext()) {
-                            playNextSong()
-                        } else {
-                            updatePlayerUI()
-                            stopProgressUpdates()
-                        }
-                    }
-                }
-        )
-    }
+    //     scanButton.setOnClickListener {
+    //         Log.d("MainActivity", "Scan button clicked")
 
-    private fun playlistTest() {
-        lifecycleScope.launch {
-            val repo = PlaylistRepository(this@MainActivity)
+    //         lifecycleScope.launch {
+    //             val repository = SongCacheRepository(this@MainActivity)
+    //             try {
+    //                 repository.syncFromMediaStore(this@MainActivity)
+    //                 Log.d("MainActivity", "Scan complete!")
+    //             } catch (e: Exception) {
+    //                 Log.e("MainActivity", "Scan failed", e)
+    //             }
+    //         }
+    //     }
 
-            repo.getAllPlaylists().collect { playlists ->
-                if (playlists.isEmpty()) {
-                    val playlist = repo.createPlaylist("My Favorites")
+    //     buttonViewPlaylists.setOnClickListener {
+    //         startActivity(Intent(this, PlaylistActivity::class.java))
+    //     }
 
-                    val db = AppDatabase.getDatabase(this@MainActivity)
-                    db.songDao().getAllSongsWithArtists().collect { songs ->
-                        songs.take(3).forEach { song ->
-                            repo.addSongToPlaylist(playlist.id, song.song.id)
-                        }
-                    }
+    //     buttonSearch.setOnClickListener { startActivity(Intent(this, SearchActivity::class.java)) }
 
-                    Log.d("MainActivity", "Created test playlist")
-                }
-                val playlist = repo.createPlaylist("aaaaa")
-                val db = AppDatabase.getDatabase(this@MainActivity)
-                db.songDao().getAllSongsWithArtists().collect { songs ->
-                    songs.take(30).forEach { song ->
-                        repo.addSongToPlaylist(playlist.id, song.song.id)
-                    }
-                }
-            }
-        }
-    }
+    //     ensureAudioPermission {
+    //         Log.d("MainActivity", "Permission granted, loading songs from database...")
+
+    //         lifecycleScope.launch {
+    //             try {
+    //                 val db = AppDatabase.getDatabase(this@MainActivity)
+    //                 lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+    //                     db.songDao().getAllSongsWithArtists().collect { songs ->
+    //                         Log.d("MainActivity", "Loaded ${songs.size} songs from database")
+    //                         songAdapter.updateSongs(songs)
+    //                     }
+    //                 }
+    //             } catch (e: Exception) {
+    //                 Log.e("MainActivity", "Error loading songs from database", e)
+    //             }
+    //         }
+    //     }
+
+    //     // playlistTest()
+    // }
+
+    // private val audioPermission: String
+    //     get() =
+    //             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    //                 Manifest.permission.READ_MEDIA_AUDIO
+    //             } else {
+    //                 Manifest.permission.READ_EXTERNAL_STORAGE
+    //             }
+
+    // private var pendingOnGranted: (() -> Unit)? = null
+
+    // private val audioPermissionLauncher =
+    //         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+    //             if (isGranted) {
+    //                 Log.d("MainActivity", "Permission granted")
+    //                 pendingOnGranted?.invoke()
+    //             } else {
+    //                 Log.d("MainActivity", "Permission denied")
+    //             }
+    //             pendingOnGranted = null
+    //         }
+
+    // fun ensureAudioPermission(onGranted: () -> Unit) {
+    //     val granted =
+    //             ContextCompat.checkSelfPermission(this, audioPermission) ==
+    //                     PackageManager.PERMISSION_GRANTED
+
+    //     if (granted) {
+    //         onGranted()
+    //     } else {
+    //         pendingOnGranted = onGranted
+    //         audioPermissionLauncher.launch(audioPermission)
+    //     }
+    // }
+
+    // override fun onDestroy() {
+    //     super.onDestroy()
+    //     musicPlayer.stopAndRelease()
+    //     Log.d("MainActivity", "Activity destroyed, released player")
+    // }
+
+    // override fun playSongAtCurrentIndex() {
+    //     val song = playQueue.getCurrentSong() ?: return
+
+    //     musicPlayer.play(
+    //             context = this,
+    //             uri = Uri.parse(song.song.uri),
+    //             onPrepared = {
+    //                 Log.d("MainActivity", "Playback started for ${song.song.title}")
+    //                 runOnUiThread {
+    //                     updatePlayerUI()
+    //                     startProgressUpdates()
+    //                 }
+    //             },
+    //             onCompletion = {
+    //                 Log.d("MainActivity", "Playback completed for ${song.song.title}")
+    //                 runOnUiThread {
+    //                     if (playQueue.hasNext()) {
+    //                         playNextSong()
+    //                     } else {
+    //                         updatePlayerUI()
+    //                         stopProgressUpdates()
+    //                     }
+    //                 }
+    //             }
+    //     )
+    // }
+
+    // private fun playlistTest() {
+    //     lifecycleScope.launch {
+    //         val repo = PlaylistRepository(this@MainActivity)
+
+    //         repo.getAllPlaylists().collect { playlists ->
+    //             if (playlists.isEmpty()) {
+    //                 val playlist = repo.createPlaylist("My Favorites")
+
+    //                 val db = AppDatabase.getDatabase(this@MainActivity)
+    //                 db.songDao().getAllSongsWithArtists().collect { songs ->
+    //                     songs.take(3).forEach { song ->
+    //                         repo.addSongToPlaylist(playlist.id, song.song.id)
+    //                     }
+    //                 }
+
+    //                 Log.d("MainActivity", "Created test playlist")
+    //             }
+    //             val playlist = repo.createPlaylist("aaaaa")
+    //             val db = AppDatabase.getDatabase(this@MainActivity)
+    //             db.songDao().getAllSongsWithArtists().collect { songs ->
+    //                 songs.take(30).forEach { song ->
+    //                     repo.addSongToPlaylist(playlist.id, song.song.id)
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 }

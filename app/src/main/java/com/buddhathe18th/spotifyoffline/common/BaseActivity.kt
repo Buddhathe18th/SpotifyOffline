@@ -27,8 +27,9 @@ import com.buddhathe18th.spotifyoffline.common.player.MusicPlayerManager
 import com.buddhathe18th.spotifyoffline.common.player.PlayQueue
 import com.buddhathe18th.spotifyoffline.common.player.QueueManager
 import com.buddhathe18th.spotifyoffline.queue.QueueActivity
+import androidx.appcompat.app.AppCompatActivity
 
-open class BaseActivity : ComponentActivity() {
+open class BaseActivity : AppCompatActivity() {
 
     protected val musicPlayer = MusicPlayerManager.musicPlayer
     protected val playQueue = QueueManager.playQueue
